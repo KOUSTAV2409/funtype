@@ -18,7 +18,7 @@ impl UIWidgets {
         let h_y = 18.0 + offset_y;
         let h_h = 44.0;
 
-        // Top bar backdrop container
+        // Top bar container
         draw_rectangle(16.0 + offset_x, h_y, screen_w - 32.0, h_h, palette.surface);
         draw_rectangle_lines(16.0 + offset_x, h_y, screen_w - 32.0, h_h, 1.0, palette.border);
 
@@ -28,26 +28,26 @@ impl UIWidgets {
 
         // Mode tabs in center
         let modes = [
-            (GameMode::StressShredder, "1: Shredder"),
-            (GameMode::ZenFlow, "2: Zen Flow"),
-            (GameMode::SpeedSprint, "3: Sprint"),
+            (GameMode::StressShredder, "F1: Shredder"),
+            (GameMode::ZenFlow, "F2: Zen Flow"),
+            (GameMode::SpeedSprint, "F3: Sprint"),
         ];
 
-        let mut tab_x = 200.0 + offset_x;
+        let mut tab_x = 180.0 + offset_x;
         for (m, label) in modes {
             let is_active = m == current_mode;
-            let dims = measure_text(label, None, 15, 1.0);
+            let dims = measure_text(label, None, 14, 1.0);
             let btn_w = dims.width + 18.0;
 
             if is_active {
                 draw_rectangle(tab_x, h_y + 8.0, btn_w, 28.0, palette.surface_bright);
                 draw_rectangle_lines(tab_x, h_y + 8.0, btn_w, 28.0, 1.5, palette.primary);
-                draw_text(label, tab_x + 9.0, h_y + 27.0, 15.0, palette.primary);
+                draw_text(label, tab_x + 9.0, h_y + 26.0, 14.0, palette.primary);
             } else {
-                draw_text(label, tab_x + 9.0, h_y + 27.0, 15.0, palette.subtext);
+                draw_text(label, tab_x + 9.0, h_y + 26.0, 14.0, palette.subtext);
             }
 
-            tab_x += btn_w + 12.0;
+            tab_x += btn_w + 10.0;
         }
 
         // Right side pills: Sound & Theme
@@ -60,7 +60,7 @@ impl UIWidgets {
         draw_rectangle_lines(s_x, h_y + 8.0, s_w, 28.0, 1.0, palette.border);
         draw_text(&sound_label, s_x + 8.0, h_y + 26.0, 14.0, palette.text);
 
-        let theme_label = format!("[F2] {}", current_theme.name());
+        let theme_label = format!("[F4] {}", current_theme.name());
         let t_dims = measure_text(&theme_label, None, 14, 1.0);
         let t_w = t_dims.width + 16.0;
         let t_x = s_x - t_w - 12.0;
@@ -83,7 +83,7 @@ impl UIWidgets {
         draw_rectangle(16.0 + offset_x, f_y, screen_w - 32.0, f_h, palette.surface);
         draw_rectangle_lines(16.0 + offset_x, f_y, screen_w - 32.0, f_h, 1.0, palette.border);
 
-        let footer_hint = "[Esc] Exit / Hide   |   [1-3] Switch Mode   |   [Tab] Switch Switch Sound   |   [F2] Change Theme   |   [R] Reset Mode";
+        let footer_hint = "[Esc] Exit   |   [F1-F3] Modes   |   [Tab] ASMR Switch   |   [F4] Theme   |   [Ctrl+R / F5] Reset";
         let dims = measure_text(footer_hint, None, 13, 1.0);
         draw_text(footer_hint, (screen_w - dims.width) * 0.5 + offset_x, f_y + 21.0, 13.0, palette.muted);
     }
@@ -95,7 +95,6 @@ impl UIWidgets {
         offset_x: f32,
         offset_y: f32,
     ) {
-        // Sleek outer accent border
         draw_rectangle_lines(
             2.0 + offset_x,
             2.0 + offset_y,

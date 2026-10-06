@@ -1,32 +1,38 @@
 #!/usr/bin/env bash
 # FunType - Instant launcher & window toggle for Unix / Omarchy / Linux / macOS
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-BIN="$ROOT/target/release/funtype"
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT="$(cd "$DIR/.." && pwd)"
 
-# Compile if not already compiled
-if [[ ! -f "$BIN" ]]; then
+# 1. Locate binary
+if [[ -x "$DIR/funtype-bin" ]]; then
+    BIN="$DIR/funtype-bin"
+elif [[ -x "$ROOT/target/release/funtype" ]]; then
+    BIN="$ROOT/target/release/funtype"
+elif command -v funtype-bin >/dev/null 2>&1; then
+    BIN="$(command -v funtype-bin)"
+elif [[ -f "$ROOT/Cargo.toml" ]]; then
     echo "⚡ FunType binary not found. Compiling release build..."
     (cd "$ROOT" && cargo build --release)
+    BIN="$ROOT/target/release/funtype"
+else
+    echo "❌ Error: Could not locate funtype binary."
+    exit 1
 fi
 
-# Hyprland fast toggle logic
+# 2. Hyprland fast toggle / focus logic
 if command -v hyprctl >/dev/null 2>&1 && [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
-    # Check if funtype window already exists
-    FUNTYPE_PID=$(pgrep -x "funtype" | head -n 1)
+    FUNTYPE_PID=$(pgrep -x "funtype-bin" || pgrep -x "funtype" | grep -v "^$$$" | head -n 1)
     if [[ -n "$FUNTYPE_PID" ]]; then
-        # Check if argument is --toggle or if toggle is desired
         if [[ "$1" == "--toggle" ]] || [[ "$1" == "-t" ]]; then
-            # If active, close it (or kill so it toggles off cleanly)
             kill -TERM "$FUNTYPE_PID" 2>/dev/null
             exit 0
         else
-            # Focus existing window
-            hyprctl dispatch focuswindow "class:^(funtype)$" 2>/dev/null
+            hyprctl dispatch focuswindow "title:^(FunType)$" 2>/dev/null
             exit 0
         fi
     fi
 fi
 
-# Launch FunType
+# 3. Launch FunType
 exec "$BIN" "$@"

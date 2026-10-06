@@ -6,7 +6,7 @@ use crate::theme::ThemePalette;
 pub struct SpeedSprint {
     pub words: Vec<String>,
     pub current_word_idx: usize,
-    pub current_char_idx: usize,
+    pub current_input: String,
     pub correct_keystrokes: u32,
     pub total_keystrokes: u32,
     pub time_remaining: f32,
@@ -15,6 +15,8 @@ pub struct SpeedSprint {
     pub is_finished: bool,
     pub combo: u32,
     pub max_combo: u32,
+    pub caret_x: f32,
+    pub caret_y: f32,
 }
 
 impl SpeedSprint {
@@ -22,7 +24,7 @@ impl SpeedSprint {
         let mut sprint = Self {
             words: Vec::new(),
             current_word_idx: 0,
-            current_char_idx: 0,
+            current_input: String::new(),
             correct_keystrokes: 0,
             total_keystrokes: 0,
             time_remaining: 30.0,
@@ -31,6 +33,8 @@ impl SpeedSprint {
             is_finished: false,
             combo: 0,
             max_combo: 0,
+            caret_x: 120.0,
+            caret_y: 260.0,
         };
         sprint.generate_words();
         sprint
@@ -39,7 +43,7 @@ impl SpeedSprint {
     pub fn reset(&mut self) {
         self.generate_words();
         self.current_word_idx = 0;
-        self.current_char_idx = 0;
+        self.current_input.clear();
         self.correct_keystrokes = 0;
         self.total_keystrokes = 0;
         self.time_remaining = self.duration;
@@ -60,7 +64,7 @@ impl SpeedSprint {
         ];
 
         self.words.clear();
-        for _ in 0..70 {
+        for _ in 0..120 {
             let idx = rand::gen_range(0, pool.len());
             self.words.push(pool[idx].to_string());
         }
@@ -69,7 +73,7 @@ impl SpeedSprint {
     pub fn handle_char(
         &mut self,
         c: char,
-        sound: &SoundEngine,
+        sound: &mut SoundEngine,
         particles: &mut ParticleSystem,
         palette: &ThemePalette,
     ) {
@@ -87,51 +91,60 @@ impl SpeedSprint {
             return;
         }
 
-        let current_word = &self.words[self.current_word_idx];
-        let word_chars: Vec<char> = current_word.chars().collect();
+        let target_word = &self.words[self.current_word_idx];
 
         if c == ' ' {
-            // Space pressed: move to next word
-            if self.current_char_idx > 0 {
-                self.current_word_idx += 1;
-                self.current_char_idx = 0;
+            // Space advances the word
+            if !self.current_input.is_empty() {
                 sound.play_keystroke();
+                if self.current_input == *target_word {
+                    self.correct_keystrokes += target_word.len() as u32 + 1; // Word + space
+                    self.combo += 1;
+                    if self.combo > self.max_combo {
+                        self.max_combo = self.combo;
+                    }
 
-                if self.combo > 5 {
-                    particles.spawn_burst(400.0, 300.0, palette.success, 16);
+                    if self.combo > 5 {
+                        particles.spawn_burst(self.caret_x, self.caret_y - 10.0, palette.success, 14);
+                    }
+                    if self.combo % 10 == 0 {
+                        sound.play_combo();
+                        particles.spawn_floating_text(
+                            &format!("{}x COMBO STREAK!", self.combo),
+                            self.caret_x,
+                            self.caret_y - 30.0,
+                            palette.warning,
+                            22.0,
+                        );
+                    }
+                } else {
+                    self.combo = 0;
+                    particles.spawn_keystroke_spark(self.caret_x, self.caret_y - 10.0, palette.danger);
                 }
+
+                self.current_word_idx += 1;
+                self.current_input.clear();
             }
             return;
         }
 
-        if self.current_char_idx < word_chars.len() {
-            if word_chars[self.current_char_idx] == c {
-                self.correct_keystrokes += 1;
-                self.current_char_idx += 1;
-                self.combo += 1;
-                if self.combo > self.max_combo {
-                    self.max_combo = self.combo;
-                }
-                sound.play_keystroke();
+        // Typing characters
+        self.current_input.push(c);
+        sound.play_keystroke();
 
-                let col = if self.combo > 15 { palette.warning } else { palette.accent };
-                particles.spawn_keystroke_spark(450.0, 310.0, col);
+        let is_correct_so_far = target_word.starts_with(&self.current_input);
+        let spark_col = if is_correct_so_far {
+            if self.combo > 15 { palette.warning } else { palette.accent }
+        } else {
+            palette.danger
+        };
 
-                if self.current_char_idx == word_chars.len() {
-                    // Completed current word
-                    self.current_word_idx += 1;
-                    self.current_char_idx = 0;
-                    if self.combo % 10 == 0 {
-                        sound.play_combo();
-                        particles.spawn_floating_text(&format!("{}x COMBO STREAK!", self.combo), 450.0, 240.0, palette.warning, 22.0);
-                    }
-                }
-            } else {
-                // Mistake
-                self.combo = 0;
-                sound.play_keystroke();
-                particles.spawn_keystroke_spark(450.0, 310.0, palette.danger);
-            }
+        particles.spawn_keystroke_spark(self.caret_x, self.caret_y - 8.0, spark_col);
+    }
+
+    pub fn handle_backspace(&mut self) {
+        if !self.current_input.is_empty() {
+            self.current_input.pop();
         }
     }
 
@@ -159,7 +172,7 @@ impl SpeedSprint {
         }
     }
 
-    pub fn draw(&self, screen_w: f32, screen_h: f32, palette: &ThemePalette, offset_x: f32, offset_y: f32) {
+    pub fn draw(&mut self, screen_w: f32, screen_h: f32, palette: &ThemePalette, offset_x: f32, offset_y: f32) {
         if self.is_finished {
             // Results Card
             let card_w = 480.0;
@@ -184,7 +197,7 @@ impl SpeedSprint {
             draw_text(&combo_str, card_x + 50.0, card_y + 185.0, 24.0, palette.peach);
             draw_text(&stress_relieved, card_x + 50.0, card_y + 225.0, 20.0, palette.warning);
 
-            let restart_hint = "Press [R] to Play Again";
+            let restart_hint = "Press [Ctrl+R] to Play Again";
             let r_dims = measure_text(restart_hint, None, 16, 1.0);
             draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 18.0, 16.0, palette.subtext);
             return;
@@ -200,63 +213,119 @@ impl SpeedSprint {
         let m_dims = measure_text(&metrics, None, 20, 1.0);
         draw_text(&metrics, (screen_w - m_dims.width) * 0.5 + offset_x, 100.0 + offset_y, 20.0, palette.accent);
 
-        // Word Stream Display
+        // Word Stream Display with stable 3-row layout
         let start_x = 120.0 + offset_x;
-        let start_y = 260.0 + offset_y;
+        let start_y = 250.0 + offset_y;
         let font_size = 28.0;
-        let line_height = 44.0;
+        let line_height = 48.0;
         let max_w = screen_w - 240.0;
+        let space_w = 16.0;
 
-        let mut cur_x = start_x;
-        let mut cur_y = start_y;
+        // Group words into lines
+        let mut lines: Vec<Vec<usize>> = Vec::new();
+        let mut current_line: Vec<usize> = Vec::new();
+        let mut current_line_w = 0.0;
 
-        let start_word = self.current_word_idx.saturating_sub(2);
-        let end_word = (start_word + 24).min(self.words.len());
-
-        for w_idx in start_word..end_word {
-            let word = &self.words[w_idx];
-            let w_dims = measure_text(word, None, font_size as u16, 1.0);
-
-            if cur_x + w_dims.width + 16.0 > start_x + max_w {
-                cur_x = start_x;
-                cur_y += line_height;
+        for w_idx in 0..self.words.len() {
+            let w_dims = measure_text(&self.words[w_idx], None, font_size as u16, 1.0);
+            if current_line_w + w_dims.width + space_w > max_w && !current_line.is_empty() {
+                lines.push(current_line);
+                current_line = Vec::new();
+                current_line_w = 0.0;
             }
+            current_line.push(w_idx);
+            current_line_w += w_dims.width + space_w;
+        }
+        if !current_line.is_empty() {
+            lines.push(current_line);
+        }
 
-            if w_idx == self.current_word_idx {
-                // Highlight active word
-                let chars: Vec<char> = word.chars().collect();
-                for (c_i, &ch) in chars.iter().enumerate() {
-                    let ch_s = ch.to_string();
-                    let ch_dims = measure_text(&ch_s, None, font_size as u16, 1.0);
-                    let col = if c_i < self.current_char_idx {
-                        palette.success
-                    } else if c_i == self.current_char_idx {
-                        palette.text
-                    } else {
-                        palette.subtext
-                    };
-                    draw_text(&ch_s, cur_x, cur_y, font_size, col);
+        // Find which line the active word is on
+        let mut active_line_idx = 0;
+        for (l_idx, line) in lines.iter().enumerate() {
+            if line.contains(&self.current_word_idx) {
+                active_line_idx = l_idx;
+                break;
+            }
+        }
 
-                    // Active letter underline
-                    if c_i == self.current_char_idx {
-                        draw_rectangle(cur_x, cur_y + 4.0, ch_dims.width, 2.5, palette.accent);
+        // Show 3 rows centered around the active line
+        let visible_start_line = active_line_idx.saturating_sub(1);
+        let visible_end_line = (visible_start_line + 3).min(lines.len());
+
+        for (display_row, l_idx) in (visible_start_line..visible_end_line).enumerate() {
+            let line = &lines[l_idx];
+            let row_y = start_y + (display_row as f32 * line_height);
+            let mut cur_x = start_x;
+
+            for &w_idx in line {
+                let target_word = &self.words[w_idx];
+                let w_dims = measure_text(target_word, None, font_size as u16, 1.0);
+
+                if w_idx == self.current_word_idx {
+                    // Active word: render typed characters and target comparison
+                    let target_chars: Vec<char> = target_word.chars().collect();
+                    let input_chars: Vec<char> = self.current_input.chars().collect();
+
+                    let mut char_x = cur_x;
+                    for i in 0..target_chars.len().max(input_chars.len()) {
+                        let ch_to_draw = if i < input_chars.len() {
+                            input_chars[i]
+                        } else {
+                            target_chars[i]
+                        };
+
+                        let ch_s = ch_to_draw.to_string();
+                        let ch_w = measure_text(&ch_s, None, font_size as u16, 1.0).width;
+
+                        let col = if i < input_chars.len() {
+                            if i < target_chars.len() && input_chars[i] == target_chars[i] {
+                                palette.success
+                            } else {
+                                palette.danger
+                            }
+                        } else {
+                            palette.text
+                        };
+
+                        draw_text(&ch_s, char_x, row_y, font_size, col);
+
+                        // If this is the active typing cursor position
+                        if i == input_chars.len() {
+                            self.caret_x = char_x;
+                            self.caret_y = row_y;
+                        }
+
+                        char_x += ch_w;
                     }
-                    cur_x += ch_dims.width;
+
+                    if input_chars.len() >= target_chars.len() {
+                        self.caret_x = char_x;
+                        self.caret_y = row_y;
+                    }
+
+                    // Draw smooth caret
+                    let caret_h = font_size * 0.85;
+                    let caret_alpha = (macroquad::time::get_time() as f32 * 4.0).sin().abs() * 0.7 + 0.3;
+                    let mut caret_col = palette.accent;
+                    caret_col.a = caret_alpha;
+                    draw_rectangle(self.caret_x, self.caret_y - caret_h + 4.0, 3.0, caret_h, caret_col);
+
+                    cur_x += w_dims.width.max(char_x - cur_x) + space_w;
+                } else if w_idx < self.current_word_idx {
+                    // Already typed word
+                    draw_text(target_word, cur_x, row_y, font_size, palette.muted);
+                    cur_x += w_dims.width + space_w;
+                } else {
+                    // Upcoming word
+                    draw_text(target_word, cur_x, row_y, font_size, palette.subtext);
+                    cur_x += w_dims.width + space_w;
                 }
-                cur_x += 16.0;
-            } else if w_idx < self.current_word_idx {
-                // Already typed
-                draw_text(word, cur_x, cur_y, font_size, palette.muted);
-                cur_x += w_dims.width + 16.0;
-            } else {
-                // Upcoming
-                draw_text(word, cur_x, cur_y, font_size, palette.subtext);
-                cur_x += w_dims.width + 16.0;
             }
         }
 
         if !self.is_started {
-            let start_hint = "Start typing any letter to begin the 30s sprint";
+            let start_hint = "Type the first word and press Space to start the 30s sprint";
             let s_dims = measure_text(start_hint, None, 16, 1.0);
             draw_text(start_hint, (screen_w - s_dims.width) * 0.5 + offset_x, screen_h - 110.0 + offset_y, 16.0, palette.peach);
         }

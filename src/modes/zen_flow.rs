@@ -42,8 +42,8 @@ impl ZenFlow {
             target_chars,
             breath_timer: 0.0,
             quotes_completed: 0,
-            caret_x: 180.0,
-            caret_target_x: 180.0,
+            caret_x: 140.0,
+            caret_target_x: 140.0,
             caret_y: 280.0,
             caret_target_y: 280.0,
         }
@@ -58,7 +58,7 @@ impl ZenFlow {
     pub fn handle_char(
         &mut self,
         c: char,
-        sound: &SoundEngine,
+        sound: &mut SoundEngine,
         particles: &mut ParticleSystem,
         palette: &ThemePalette,
     ) {
@@ -98,8 +98,8 @@ impl ZenFlow {
         }
 
         // Smooth caret lerp
-        self.caret_x += (self.caret_target_x - self.caret_x) * (dt * 24.0).min(1.0);
-        self.caret_y += (self.caret_target_y - self.caret_y) * (dt * 24.0).min(1.0);
+        self.caret_x += (self.caret_target_x - self.caret_x) * (dt * 26.0).min(1.0);
+        self.caret_y += (self.caret_target_y - self.caret_y) * (dt * 26.0).min(1.0);
     }
 
     pub fn draw(&mut self, screen_w: f32, screen_h: f32, palette: &ThemePalette, offset_x: f32, offset_y: f32) {
@@ -122,64 +122,84 @@ impl ZenFlow {
         let base_radius = 28.0;
         let current_radius = base_radius * target_scale;
 
-        // Outer glow circle
         let mut glow_col = palette.accent;
         glow_col.a = 0.22;
         draw_circle(orb_x, orb_y, current_radius * 1.5, glow_col);
 
-        // Core orb
         let mut core_col = palette.primary;
         core_col.a = 0.85;
         draw_circle(orb_x, orb_y, current_radius, core_col);
 
-        // Breath text prompt
         let prompt_dims = measure_text(phase_name, None, 16, 1.0);
         draw_text(phase_name, orb_x - prompt_dims.width * 0.5, orb_y + current_radius + 24.0, 16.0, palette.subtext);
 
-        // --- Typing Quote Area ---
-        let start_x = 100.0 + offset_x;
+        // --- Typing Quote Area with robust word wrapping ---
+        let start_x = 120.0 + offset_x;
         let start_y = 260.0 + offset_y;
         let font_size = 28.0;
-        let line_height = 42.0;
-        let max_w = screen_w - 200.0;
+        let line_height = 46.0;
+        let max_w = screen_w - 240.0;
 
         let mut cur_x = start_x;
         let mut cur_y = start_y;
 
-        for (i, &ch) in self.target_chars.iter().enumerate() {
-            let ch_str = ch.to_string();
-            let dims = measure_text(&ch_str, None, font_size as u16, 1.0);
+        let quote_str: String = self.target_chars.iter().collect();
+        let words: Vec<&str> = quote_str.split(' ').collect();
+        let space_w = measure_text(" ", None, font_size as u16, 1.0).width;
 
-            // Wrap line if needed
-            if cur_x + dims.width > start_x + max_w && ch == ' ' {
+        let mut global_char_idx = 0;
+        let mut caret_pos_found = false;
+
+        for (w_idx, word) in words.iter().enumerate() {
+            let word_w = measure_text(word, None, font_size as u16, 1.0).width;
+
+            // If word exceeds line width, wrap before drawing word
+            if cur_x + word_w > start_x + max_w && cur_x > start_x {
                 cur_x = start_x;
                 cur_y += line_height;
-                continue;
             }
 
-            // Determine character color
-            let color = if i < self.typed_chars.len() {
-                if self.typed_chars[i] == ch {
-                    palette.success
-                } else {
-                    palette.peach
+            // Draw each character of the word
+            for ch in word.chars() {
+                let ch_s = ch.to_string();
+                let ch_w = measure_text(&ch_s, None, font_size as u16, 1.0).width;
+
+                if global_char_idx == self.typed_chars.len() {
+                    self.caret_target_x = cur_x;
+                    self.caret_target_y = cur_y;
+                    caret_pos_found = true;
                 }
-            } else {
-                palette.muted
-            };
 
-            // If this is the current caret position
-            if i == self.typed_chars.len() {
-                self.caret_target_x = cur_x;
-                self.caret_target_y = cur_y;
+                let col = if global_char_idx < self.typed_chars.len() {
+                    if self.typed_chars[global_char_idx] == ch {
+                        palette.success
+                    } else {
+                        palette.peach
+                    }
+                } else {
+                    palette.muted
+                };
+
+                draw_text(&ch_s, cur_x, cur_y, font_size, col);
+                cur_x += ch_w;
+                global_char_idx += 1;
             }
 
-            draw_text(&ch_str, cur_x, cur_y, font_size, color);
-            cur_x += dims.width;
+            // Draw trailing space if not the last word
+            if w_idx + 1 < words.len() {
+                if global_char_idx == self.typed_chars.len() {
+                    self.caret_target_x = cur_x;
+                    self.caret_target_y = cur_y;
+                    caret_pos_found = true;
+                }
+
+                cur_x += space_w;
+                global_char_idx += 1;
+            }
         }
 
-        // If at the end of quote
-        if self.typed_chars.len() == self.target_chars.len() {
+        // If caret is at the very end of the quote
+        if !caret_pos_found && self.typed_chars.len() >= self.target_chars.len() {
             self.caret_target_x = cur_x;
             self.caret_target_y = cur_y;
         }
@@ -191,7 +211,7 @@ impl ZenFlow {
         caret_col.a = caret_alpha;
         draw_rectangle(self.caret_x, self.caret_y - caret_h + 4.0, 3.0, caret_h, caret_col);
 
-        // Footer Zen info
+        // Footer info
         let progress_text = format!("Wisdom Reflections Completed: {}  |  Press Space / Backspace freely", self.quotes_completed);
         let prog_dims = measure_text(&progress_text, None, 15, 1.0);
         draw_text(&progress_text, (screen_w - prog_dims.width) * 0.5 + offset_x, screen_h - 110.0 + offset_y, 15.0, palette.muted);

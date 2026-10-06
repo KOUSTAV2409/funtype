@@ -74,13 +74,13 @@ Cycle anytime with `[F2]`:
 | --- | --- |
 | `SUPER + Y` | **Summon / Launch FunType anywhere** |
 | `Esc` | **Instant Exit / Dismiss** |
-| `1` | Switch to **Stress Shredder** |
-| `2` | Switch to **Zen Flow** |
-| `3` | Switch to **Speed Sprint** |
+| `F1` | Switch to **Stress Shredder** |
+| `F2` | Switch to **Zen Flow** |
+| `F3` | Switch to **Speed Sprint** |
 | `Tab` | Cycle **ASMR Switch Sounds** |
-| `F2` | Cycle **Themes** |
-| `R` | Reset / Restart Active Mode |
-| `Backspace` | Erase Character (Zen Flow & Sprint) |
+| `F4` | Cycle **Themes** |
+| `Ctrl + R` / `F5` | Reset / Restart Active Mode |
+| `Backspace` | Erase Character / Undo (All Modes) |
 
 ---
 
