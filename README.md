@@ -7,6 +7,8 @@
 [![Built with Rust](https://img.shields.io/badge/Built%20with-Rust-orange.svg)](https://www.rust-lang.org)
 [![Startup Time](https://img.shields.io/badge/Startup-%3C%2025ms-brightgreen.svg)]()
 [![Binary Size](https://img.shields.io/badge/Binary%20Size-1.6%20MB-purple.svg)]()
+[![Web Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?logo=vercel)](https://funtype.vercel.app)
+
 
 ---
 
