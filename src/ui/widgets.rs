@@ -83,7 +83,7 @@ impl UIWidgets {
         draw_rectangle(16.0 + offset_x, f_y, screen_w - 32.0, f_h, palette.surface);
         draw_rectangle_lines(16.0 + offset_x, f_y, screen_w - 32.0, f_h, 1.0, palette.border);
 
-        let footer_hint = "[Esc] Exit  |  [F1-F3] Modes  |  [Tab] ASMR  |  [F4] Theme  |  [Ctrl+T] Sprint Time  |  [Ctrl+R] Reset";
+        let footer_hint = "[Esc] Exit  |  [F1-F3] Modes  |  [Tab] ASMR  |  [F4] Theme  |  [Ctrl+T] Time  |  [Ctrl+P] Symbols  |  [Ctrl+R] Reset";
         let dims = measure_text(footer_hint, None, 13, 1.0);
         draw_text(footer_hint, (screen_w - dims.width) * 0.5 + offset_x, f_y + 21.0, 13.0, palette.muted);
     }

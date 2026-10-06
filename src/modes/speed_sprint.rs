@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 use crate::audio::SoundEngine;
 use crate::particles::ParticleSystem;
+use crate::stats::UserStats;
 use crate::theme::ThemePalette;
 
 pub const AVAILABLE_DURATIONS: [f32; 3] = [15.0, 30.0, 60.0];
@@ -22,6 +23,12 @@ pub struct SpeedSprint {
     pub max_combo: u32,
     pub caret_x: f32,
     pub caret_y: f32,
+    pub target_caret_x: f32,
+    pub target_caret_y: f32,
+    pub stats: UserStats,
+    pub is_new_pb: bool,
+    pub pb_burst_spawned: bool,
+    pub punctuation_mode: bool,
 }
 
 impl SpeedSprint {
@@ -42,7 +49,13 @@ impl SpeedSprint {
             combo: 0,
             max_combo: 0,
             caret_x: 120.0,
-            caret_y: 260.0,
+            caret_y: 250.0,
+            target_caret_x: 120.0,
+            target_caret_y: 250.0,
+            stats: UserStats::new(),
+            is_new_pb: false,
+            pb_burst_spawned: false,
+            punctuation_mode: false,
         };
         sprint.generate_words();
         sprint
@@ -62,6 +75,11 @@ impl SpeedSprint {
         self.set_duration(next_dur);
     }
 
+    pub fn toggle_punctuation(&mut self) {
+        self.punctuation_mode = !self.punctuation_mode;
+        self.reset();
+    }
+
     pub fn reset(&mut self) {
         self.generate_words();
         self.current_word_idx = 0;
@@ -76,6 +94,12 @@ impl SpeedSprint {
         self.is_finished = false;
         self.combo = 0;
         self.max_combo = 0;
+        self.caret_x = 120.0;
+        self.caret_y = 250.0;
+        self.target_caret_x = 120.0;
+        self.target_caret_y = 250.0;
+        self.is_new_pb = false;
+        self.pb_burst_spawned = false;
     }
 
     fn generate_words(&mut self) {
@@ -95,10 +119,35 @@ impl SpeedSprint {
             "real", "still", "world", "hand", "high", "place", "hold", "turn", "right", "move",
         ];
 
+        let num_pool = vec!["42", "100", "2026", "1", "10", "256", "365", "12", "7", "99"];
+
         self.words.clear();
         for _ in 0..160 {
+            if self.punctuation_mode && rand::gen_range(0, 10) == 0 {
+                let n_idx = rand::gen_range(0, num_pool.len());
+                self.words.push(num_pool[n_idx].to_string());
+                continue;
+            }
+
             let idx = rand::gen_range(0, pool.len());
-            self.words.push(pool[idx].to_string());
+            let mut word = pool[idx].to_string();
+
+            if self.punctuation_mode {
+                let p_choice = rand::gen_range(0, 10);
+                match p_choice {
+                    1 => word = format!("{},", word),
+                    2 => word = format!("{}.", word),
+                    3 => word = format!("\"{}\"", word),
+                    4 => word = format!("{}:", word),
+                    5 => word = format!("{};", word),
+                    6 => word = format!("({})", word),
+                    7 => word = format!("{}?", word),
+                    8 => word = format!("{}!", word),
+                    _ => {}
+                }
+            }
+
+            self.words.push(word);
         }
     }
 
@@ -213,7 +262,7 @@ impl SpeedSprint {
 
     pub fn handle_click(&mut self, mx: f32, my: f32, screen_w: f32, screen_h: f32) -> bool {
         if self.is_finished {
-            let card_w = 480.0;
+            let card_w = 540.0;
             let card_h = 320.0;
             let card_x = (screen_w - card_w) * 0.5;
             let card_y = (screen_h - card_h) * 0.5;
@@ -237,36 +286,79 @@ impl SpeedSprint {
             return false;
         }
 
-        // Check clicks on Main Sprint Duration Bar
-        let bar_y = 142.0;
-        let bar_h = 30.0;
+        // Check clicks on Main Sprint Duration Bar & Punctuation Toggle
+        let bar_y = 138.0;
+        let bar_h = 28.0;
         if my >= bar_y && my <= bar_y + bar_h {
-            let pill_w = 62.0;
-            let spacing = 10.0;
-            let total_pills_w = 3.0 * pill_w + 2.0 * spacing;
-            let label_w = 64.0;
-            let start_x = (screen_w - (label_w + total_pills_w)) * 0.5 + label_w;
+            let pill_w = 60.0;
+            let spacing = 8.0;
+            let total_time_pills_w = 3.0 * pill_w + 2.0 * spacing;
+            let punc_pill_w = 114.0;
+            let gap = 16.0;
+            let label = "Time:";
+            let l_dims = measure_text(label, None, 15, 1.0);
+            let total_bar_w = l_dims.width + 12.0 + total_time_pills_w + gap + punc_pill_w;
+            let start_bar_x = (screen_w - total_bar_w) * 0.5;
+            let start_pills_x = start_bar_x + l_dims.width + 12.0;
 
             for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
-                let bx = start_x + (idx as f32 * (pill_w + spacing));
+                let bx = start_pills_x + (idx as f32 * (pill_w + spacing));
                 if mx >= bx && mx <= bx + pill_w {
                     self.set_duration(dur);
                     return true;
                 }
+            }
+
+            let punc_x = start_pills_x + total_time_pills_w + gap;
+            if mx >= punc_x && mx <= punc_x + punc_pill_w {
+                self.toggle_punctuation();
+                return true;
             }
         }
 
         false
     }
 
-    pub fn update(&mut self, dt: f32) {
+    pub fn update(
+        &mut self,
+        dt: f32,
+        screen_w: f32,
+        screen_h: f32,
+        palette: &ThemePalette,
+        sound: &mut SoundEngine,
+        particles: &mut ParticleSystem,
+    ) {
         if self.is_started && !self.is_finished {
             self.time_remaining -= dt;
             if self.time_remaining <= 0.0 {
                 self.time_remaining = 0.0;
                 self.is_finished = true;
+                let final_wpm = self.wpm();
+                if self.stats.record_score(self.duration, final_wpm) {
+                    self.is_new_pb = true;
+                }
             }
         }
+
+        if self.is_finished && self.is_new_pb && !self.pb_burst_spawned {
+            self.pb_burst_spawned = true;
+            sound.play_combo();
+            let card_x = screen_w * 0.5;
+            let card_y = screen_h * 0.5;
+            particles.spawn_burst(card_x, card_y - 60.0, palette.warning, 60);
+            particles.spawn_floating_text(
+                "★ NEW PERSONAL BEST! ★",
+                card_x - 110.0,
+                card_y - 120.0,
+                palette.warning,
+                24.0,
+            );
+        }
+
+        // Smooth Caret Lerp
+        let blend = (dt * 30.0).min(1.0);
+        self.caret_x += (self.target_caret_x - self.caret_x) * blend;
+        self.caret_y += (self.target_caret_y - self.caret_y) * blend;
     }
 
     /// Standard Net WPM: (correct_chars / 5) / (elapsed_minutes)
@@ -306,31 +398,44 @@ impl SpeedSprint {
             draw_rectangle(card_x, card_y, card_w, card_h, palette.surface_bright);
             draw_rectangle_lines(card_x, card_y, card_w, card_h, 2.0, palette.accent);
 
-            // Header Row: Big WPM & Accuracy
+            // Header Row: Big WPM, Accuracy, and Personal Best
             let wpm_val = format!("{:.0}", self.wpm());
             let acc_val = format!("{:.0}%", self.accuracy());
+            let pb_val = format!("{:.0}", self.stats.get_pb(self.duration));
 
             // Left: WPM
             draw_text("wpm", card_x + 50.0, card_y + 40.0, 16.0, palette.subtext);
             draw_text(&wpm_val, card_x + 50.0, card_y + 92.0, 52.0, palette.warning);
 
-            // Right: Accuracy
-            draw_text("acc", card_x + 220.0, card_y + 40.0, 16.0, palette.subtext);
-            draw_text(&acc_val, card_x + 220.0, card_y + 92.0, 52.0, palette.success);
+            // Center: Accuracy
+            draw_text("acc", card_x + 210.0, card_y + 40.0, 16.0, palette.subtext);
+            draw_text(&acc_val, card_x + 210.0, card_y + 92.0, 52.0, palette.success);
+
+            // Right: Personal Best
+            draw_text("best", card_x + 370.0, card_y + 40.0, 16.0, palette.subtext);
+            draw_text(&pb_val, card_x + 370.0, card_y + 92.0, 52.0, palette.peach);
+
+            if self.is_new_pb {
+                let badge = "★ NEW PERSONAL BEST! ★";
+                let b_dims = measure_text(badge, None, 15, 1.0);
+                draw_text(badge, card_x + (card_w - b_dims.width) * 0.5, card_y + 24.0, 15.0, palette.warning);
+            }
 
             // Detailed stats row below
             let raw_str = format!("raw: {:.0}", self.raw_wpm());
+            let time_str = format!("time: {:.0}s", self.duration);
+            let combo_str = format!("streak: {}x", self.max_combo);
             let chars_str = format!(
                 "characters: {}/{}/{}/{}",
                 self.correct_chars, self.incorrect_chars, self.extra_chars, self.missed_chars
             );
-            let combo_str = format!("streak: {}x", self.max_combo);
-            let time_str = format!("time: {:.0}s", self.duration);
+            let mode_str = if self.punctuation_mode { "mode: symbols" } else { "mode: standard" };
 
             draw_text(&raw_str, card_x + 50.0, card_y + 140.0, 18.0, palette.primary);
-            draw_text(&time_str, card_x + 220.0, card_y + 140.0, 18.0, palette.text);
+            draw_text(&time_str, card_x + 210.0, card_y + 140.0, 18.0, palette.text);
+            draw_text(&combo_str, card_x + 370.0, card_y + 140.0, 18.0, palette.peach);
             draw_text(&chars_str, card_x + 50.0, card_y + 175.0, 18.0, palette.subtext);
-            draw_text(&combo_str, card_x + 50.0, card_y + 210.0, 18.0, palette.peach);
+            draw_text(mode_str, card_x + 370.0, card_y + 175.0, 18.0, palette.muted);
 
             // Rematch pills
             let pill_w = 64.0;
@@ -372,18 +477,20 @@ impl SpeedSprint {
         let m_dims = measure_text(&metrics, None, 20, 1.0);
         draw_text(&metrics, (screen_w - m_dims.width) * 0.5 + offset_x, 96.0 + offset_y, 20.0, palette.accent);
 
-        // 2. Interactive Time Selector Bar (15s | 30s | 60s)
-        let pill_w = 62.0;
-        let spacing = 10.0;
-        let total_pills_w = 3.0 * pill_w + 2.0 * spacing;
+        // 2. Interactive Time Selector Bar (15s | 30s | 60s) + Punctuation Toggle + PB Badge
+        let pill_w = 60.0;
+        let spacing = 8.0;
+        let total_time_pills_w = 3.0 * pill_w + 2.0 * spacing;
+        let punc_pill_w = 114.0;
+        let gap = 16.0;
         let label = "Time:";
         let l_dims = measure_text(label, None, 15, 1.0);
-        let bar_total_w = l_dims.width + 16.0 + total_pills_w;
+        let bar_total_w = l_dims.width + 12.0 + total_time_pills_w + gap + punc_pill_w;
         let start_bar_x = (screen_w - bar_total_w) * 0.5 + offset_x;
         let bar_y = 138.0 + offset_y;
 
-        draw_text(label, start_bar_x, bar_y + 19.0, 15.0, palette.subtext);
-        let start_pills_x = start_bar_x + l_dims.width + 16.0;
+        draw_text(label, start_bar_x, bar_y + 18.0, 15.0, palette.subtext);
+        let start_pills_x = start_bar_x + l_dims.width + 12.0;
 
         for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
             let bx = start_pills_x + (idx as f32 * (pill_w + spacing));
@@ -401,6 +508,29 @@ impl SpeedSprint {
                 let d_dims = measure_text(&dur_str, None, 14, 1.0);
                 draw_text(&dur_str, bx + (pill_w - d_dims.width) * 0.5, bar_y + 18.0, 14.0, palette.muted);
             }
+        }
+
+        // Punctuation toggle pill
+        let punc_x = start_pills_x + total_time_pills_w + gap;
+        let punc_label = if self.punctuation_mode { "@ symbols ON" } else { "@ symbols" };
+        if self.punctuation_mode {
+            draw_rectangle(punc_x, bar_y, punc_pill_w, 26.0, palette.surface_bright);
+            draw_rectangle_lines(punc_x, bar_y, punc_pill_w, 26.0, 1.5, palette.accent);
+            let p_dims = measure_text(punc_label, None, 13, 1.0);
+            draw_text(punc_label, punc_x + (punc_pill_w - p_dims.width) * 0.5, bar_y + 18.0, 13.0, palette.accent);
+        } else {
+            draw_rectangle(punc_x, bar_y, punc_pill_w, 26.0, palette.surface);
+            draw_rectangle_lines(punc_x, bar_y, punc_pill_w, 26.0, 1.0, palette.border);
+            let p_dims = measure_text(punc_label, None, 13, 1.0);
+            draw_text(punc_label, punc_x + (punc_pill_w - p_dims.width) * 0.5, bar_y + 18.0, 13.0, palette.muted);
+        }
+
+        // Best Record Pill (if PB exists)
+        let cur_pb = self.stats.get_pb(self.duration);
+        if cur_pb > 0.0 {
+            let pb_badge = format!("PB: {:.0} WPM", cur_pb);
+            let pb_x = punc_x + punc_pill_w + 14.0;
+            draw_text(&pb_badge, pb_x, bar_y + 18.0, 13.0, palette.peach);
         }
 
         // 3. Word Stream Display with stable 3-row layout and character-by-character color
@@ -479,26 +609,19 @@ impl SpeedSprint {
 
                         draw_text(&ch_s, char_x, row_y, font_size, col);
 
-                        // Caret cursor
+                        // Target Caret position
                         if i == input_chars.len() {
-                            self.caret_x = char_x;
-                            self.caret_y = row_y;
+                            self.target_caret_x = char_x;
+                            self.target_caret_y = row_y;
                         }
 
                         char_x += ch_w;
                     }
 
                     if input_chars.len() >= target_chars.len() {
-                        self.caret_x = char_x;
-                        self.caret_y = row_y;
+                        self.target_caret_x = char_x;
+                        self.target_caret_y = row_y;
                     }
-
-                    // Smooth cursor bar
-                    let caret_h = font_size * 0.85;
-                    let caret_alpha = (macroquad::time::get_time() as f32 * 4.0).sin().abs() * 0.7 + 0.3;
-                    let mut caret_col = palette.accent;
-                    caret_col.a = caret_alpha;
-                    draw_rectangle(self.caret_x, self.caret_y - caret_h + 4.0, 3.0, caret_h, caret_col);
 
                     cur_x += w_dims.width.max(char_x - cur_x) + space_w;
                 } else if w_idx < self.current_word_idx {
@@ -518,6 +641,19 @@ impl SpeedSprint {
                     cur_x += w_dims.width + space_w;
                 }
             }
+        }
+
+        // Draw Smooth Caret Bar
+        if !self.is_finished {
+            let caret_h = font_size * 0.85;
+            let caret_alpha = if !self.is_started {
+                (macroquad::time::get_time() as f32 * 3.5).sin().abs() * 0.6 + 0.4
+            } else {
+                0.95
+            };
+            let mut caret_col = palette.accent;
+            caret_col.a = caret_alpha;
+            draw_rectangle(self.caret_x, self.caret_y - caret_h + 4.0, 2.8, caret_h, caret_col);
         }
 
         if !self.is_started {

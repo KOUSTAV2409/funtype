@@ -1,6 +1,7 @@
 mod audio;
 mod modes;
 mod particles;
+pub mod stats;
 mod theme;
 mod ui;
 
@@ -114,6 +115,19 @@ async fn main() {
             );
         }
 
+        // Toggle Punctuation & Symbols via Ctrl+P
+        if is_ctrl && is_key_pressed(KeyCode::P) && current_mode == GameMode::SpeedSprint {
+            speed_sprint.toggle_punctuation();
+            let punc_msg = if speed_sprint.punctuation_mode { "SYMBOLS ON" } else { "STANDARD WORDS" };
+            particles.spawn_floating_text(
+                punc_msg,
+                screen_w * 0.5,
+                180.0,
+                palette.accent,
+                18.0,
+            );
+        }
+
         // Backspace handling
         if is_key_pressed(KeyCode::Backspace) {
             match current_mode {
@@ -186,7 +200,7 @@ async fn main() {
                 zen_flow.update(dt);
             }
             GameMode::SpeedSprint => {
-                speed_sprint.update(dt);
+                speed_sprint.update(dt, screen_w, screen_h, &palette, &mut sound, &mut particles);
             }
         }
 
