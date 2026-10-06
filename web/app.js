@@ -305,9 +305,9 @@ class SimulatorApp {
     document.querySelectorAll('.mode-pill-btn, .mode-tab-btn').forEach(b => {
       const isActive = b.dataset.mode === mode;
       if (isActive) {
-        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all bg-white/[0.1] text-white border border-white/[0.1] shadow-sm';
+        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all bg-primary text-primary-foreground shadow-sm';
       } else {
-        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all text-neutral-400 hover:text-white';
+        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground';
       }
     });
 
@@ -426,8 +426,8 @@ class SimulatorApp {
       const textWidth = this.ctx.measureText(s.text).width;
       
       // Clean pill background
-      this.ctx.fillStyle = 'rgba(17, 25, 21, 0.95)';
-      this.ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
+      this.ctx.fillStyle = 'rgba(28, 27, 34, 0.95)';
+      this.ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
       this.ctx.lineWidth = 1;
       this.ctx.beginPath();
       this.ctx.roundRect(s.x - 8, s.y - 17, textWidth + 16, 24, 6);
@@ -469,7 +469,7 @@ class SimulatorApp {
   }
 
   spawnExplosion(x, y) {
-    const colors = ['#10b981', '#34d399', '#6ee7b7', '#f4f4f7', '#a7f3d0'];
+    const colors = ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#ffffff'];
     for (let i = 0; i < 24; i++) {
       const angle = Math.random() * Math.PI * 2;
       const speed = 1.2 + Math.random() * 3.5;
@@ -651,10 +651,10 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await navigator.clipboard.writeText(codeElem.textContent.trim());
         copyBtn.textContent = 'Copied';
-        copyBtn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/30');
+        copyBtn.classList.add('bg-primary', 'text-primary-foreground', 'border-primary');
         setTimeout(() => {
           copyBtn.textContent = 'Copy';
-          copyBtn.classList.remove('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/30');
+          copyBtn.classList.remove('bg-primary', 'text-primary-foreground', 'border-primary');
         }, 2000);
       } catch (err) {
         console.error('Clipboard copy failed', err);
@@ -686,9 +686,9 @@ cmd + alt - y : ~/.local/bin/funtype
   setupTabs.forEach(tab => {
     tab.addEventListener('click', () => {
       setupTabs.forEach(t => {
-        t.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-[#0f1015] border border-white/[0.08] text-neutral-400 hover:text-white transition-colors';
+        t.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors';
       });
-      tab.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-white/[0.1] text-white border border-white/[0.2] transition-colors';
+      tab.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-primary transition-colors';
       const cfg = tab.dataset.config;
       if (setupCodeBlock && setupSnippets[cfg]) {
         setupCodeBlock.textContent = setupSnippets[cfg];
