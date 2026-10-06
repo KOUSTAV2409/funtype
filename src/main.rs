@@ -1,6 +1,7 @@
 mod audio;
 mod modes;
 mod particles;
+pub mod stats;
 mod theme;
 mod ui;
 
@@ -66,8 +67,18 @@ async fn main() {
             current_mode = GameMode::SpeedSprint;
         }
 
-        // Switch Sound Profile via Tab
-        if is_key_pressed(KeyCode::Tab) {
+        // If on Results Card, Tab or Enter restarts the game!
+        let is_on_results = (current_mode == GameMode::SpeedSprint && speed_sprint.is_finished)
+            || (current_mode == GameMode::StressShredder && stress_shredder.is_finished);
+
+        if is_on_results && (is_key_pressed(KeyCode::Tab) || is_key_pressed(KeyCode::Enter)) {
+            match current_mode {
+                GameMode::SpeedSprint => speed_sprint.reset(),
+                GameMode::StressShredder => stress_shredder.reset(),
+                _ => {}
+            }
+            particles.spawn_floating_text("RESTARTED", screen_w * 0.5, screen_h * 0.5, palette.accent, 22.0);
+        } else if is_key_pressed(KeyCode::Tab) {
             sound.current_switch = sound.current_switch.next();
             sound.play_keystroke();
             particles.spawn_floating_text(
@@ -102,14 +113,54 @@ async fn main() {
             particles.spawn_floating_text("RESTARTED", screen_w * 0.5, screen_h * 0.5, palette.warning, 24.0);
         }
 
-        // Cycle Sprint Duration via Ctrl+T
-        if is_ctrl && is_key_pressed(KeyCode::T) && current_mode == GameMode::SpeedSprint {
-            speed_sprint.cycle_duration();
+        // Cycle Sprint / Shredder Duration via Ctrl+T
+        if is_ctrl && is_key_pressed(KeyCode::T) {
+            if current_mode == GameMode::SpeedSprint {
+                speed_sprint.cycle_duration();
+                particles.spawn_floating_text(
+                    &format!("{:.0}s SPRINT", speed_sprint.duration),
+                    screen_w * 0.5,
+                    180.0,
+                    palette.primary,
+                    18.0,
+                );
+            } else if current_mode == GameMode::StressShredder {
+                stress_shredder.cycle_duration();
+                let dur_str = match stress_shredder.current_duration() {
+                    Some(s) => format!("{:.0}s SHRED", s),
+                    None => "FREE FALL".to_string(),
+                };
+                particles.spawn_floating_text(
+                    &dur_str,
+                    screen_w * 0.5,
+                    180.0,
+                    palette.primary,
+                    18.0,
+                );
+            }
+        }
+
+        // Toggle Punctuation & Symbols via Ctrl+P
+        if is_ctrl && is_key_pressed(KeyCode::P) && current_mode == GameMode::SpeedSprint {
+            speed_sprint.toggle_punctuation();
+            let punc_msg = if speed_sprint.punctuation_mode { "SYMBOLS ON" } else { "STANDARD WORDS" };
             particles.spawn_floating_text(
-                &format!("{:.0}s SPRINT", speed_sprint.duration),
+                punc_msg,
                 screen_w * 0.5,
                 180.0,
-                palette.primary,
+                palette.accent,
+                18.0,
+            );
+        }
+
+        // Practice Weak Keys via Ctrl+M
+        if is_ctrl && is_key_pressed(KeyCode::M) && current_mode == GameMode::SpeedSprint {
+            speed_sprint.practice_weak_keys();
+            particles.spawn_floating_text(
+                "WEAK KEYS TARGETED",
+                screen_w * 0.5,
+                180.0,
+                palette.warning,
                 18.0,
             );
         }
@@ -172,6 +223,8 @@ async fn main() {
                 }
             } else if current_mode == GameMode::SpeedSprint {
                 speed_sprint.handle_click(mx, my, screen_w, screen_h);
+            } else if current_mode == GameMode::StressShredder {
+                stress_shredder.handle_click(mx, my, screen_w, screen_h);
             }
         }
 
@@ -180,13 +233,13 @@ async fn main() {
 
         match current_mode {
             GameMode::StressShredder => {
-                stress_shredder.update(dt, screen_h, &palette, &mut particles);
+                stress_shredder.update(dt, screen_h, &palette, &mut sound, &mut particles);
             }
             GameMode::ZenFlow => {
                 zen_flow.update(dt);
             }
             GameMode::SpeedSprint => {
-                speed_sprint.update(dt);
+                speed_sprint.update(dt, screen_w, screen_h, &palette, &mut sound, &mut particles);
             }
         }
 

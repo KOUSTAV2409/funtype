@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="catppuccin">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunType ⚡ Instant-Launch Desktop Typing Game & Stress Burster</title>
+  
+  <meta name="description" content="Instant-launch, hardware-accelerated typing game & stress-burster for developers. Crafted in Rust for Unix systems with procedural ASMR mechanical audio and particle explosions.">
+  <meta name="keywords" content="typing game, developer tools, rust, mechanical keyboard sound, monkeytype alternative, stress relief, catppuccin, hyprland, linux, macos">
+  <meta name="author" content="KOUSTAV2409">
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://funtype.vercel.app/">
+  <meta property="og:title" content="FunType ⚡ Instant-Launch Desktop Typing Game">
+  <meta property="og:description" content="Bust stress. Type faster. Float inside your desktop workflow with hardware-accelerated Rust speed and ASMR mechanical keyboard clicks.">
+  <meta property="og:image" content="/favicon.svg">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FunType ⚡ Instant-Launch Desktop Typing Game">
+  <meta name="twitter:description" content="Hardware-accelerated Rust typing game for developers. Instant launch (<25ms) via SUPER + Y.">
+  <meta name="twitter:image" content="/favicon.svg">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grid-bg"></div>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <div class="logo-group">
+        <a href="#" class="logo-badge">
+          <img src="/favicon.svg" alt="FunType Logo" class="logo-icon">
+          <span>FunType</span>
+        </a>
+        <span class="version-pill">v1.0.0</span>
+      </div>
+
+      <ul class="nav-links">
+        <li><a href="#features" class="nav-link">Features</a></li>
+        <li><a href="#simulator" class="nav-link">Live Demo</a></li>
+        <li><a href="#modes" class="nav-link">Game Modes</a></li>
+        <li><a href="#audio" class="nav-link">ASMR Audio</a></li>
+        <li><a href="#install" class="nav-link">Install</a></li>
+        <li><a href="#shortcuts" class="nav-link">Shortcuts</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <button id="theme-toggle-btn" class="theme-btn" title="Cycle Theme">
+          🎨 Theme: CATPPUCCIN
+        </button>
+        <a href="https://github.com/KOUSTAV2409/funtype" target="_blank" rel="noopener noreferrer" class="github-btn">
+          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+          </svg>
+          <span>Star on GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-pill">
+        ⚡ ULTRA-LIGHT • HARDWARE ACCELERATED • ZERO BLOAT
+      </div>
+      <h1 class="hero-title">
+        Bust Stress. Type Faster.<br>
+        <span class="gradient-text">Float In Your Workflow.</span>
+      </h1>
+      <p class="hero-description">
+        An instant-launch, GPU-accelerated typing game and therapeutic stress-burster for developers and computer workers. Summoned in milliseconds via a global shortcut over any window.
+      </p>
+
+      <!-- Install Snippet Box -->
+      <div class="install-box" id="install">
+        <div class="install-tabs">
+          <button class="install-tab active" data-target="curl">Quick Install (One-line)</button>
+          <button class="install-tab" data-target="clone">Git Clone & Build</button>
+          <button class="install-tab" data-target="hyprland">Arch / Omarchy Hyprland</button>
+        </div>
+        <div class="install-body">
+          <div class="install-command">
+            <span class="prompt">$</span>
+            <code id="install-cmd-text">curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash</code>
+          </div>
+          <button class="copy-btn" id="install-copy-btn">
+            <span>Copy</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="hero-metrics">
+        <div class="metric-item">
+          <span class="metric-value">&lt; 25ms</span>
+          <span class="metric-label">Launch Latency</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">1.6 MB</span>
+          <span class="metric-label">Binary Footprint</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">0% Electron</span>
+          <span class="metric-label">100% Native Rust</span>
+        </div>
+        <div class="metric-item">
+          <span class="metric-value">SUPER + Y</span>
+          <span class="metric-label">Global Summon</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Simulator Section -->
+  <section class="simulator-section" id="simulator">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Interactive Experience</span>
+        <h2 class="section-title">Try FunType in Your Browser</h2>
+        <p class="section-desc">
+          Feel the mechanical ASMR switch feedback, explosive particle bursts, and mindful cadence below.
+        </p>
+      </div>
+
+      <!-- Simulated Floating App Window -->
+      <div class="window-container">
+        <div class="window-header">
+          <div class="window-controls">
+            <span class="window-dot dot-red"></span>
+            <span class="window-dot dot-yellow"></span>
+            <span class="window-dot dot-green"></span>
+            <span style="font-family: var(--font-mono); font-size: 0.8rem; margin-left: 0.5rem; font-weight: 600; color: var(--text-subtext);">funtype — 1040×660</span>
+          </div>
+
+          <div class="app-mode-selector">
+            <button class="mode-tab-btn active" data-mode="shredder">💥 1: Stress Shredder</button>
+            <button class="mode-tab-btn" data-mode="zen">🌿 2: Zen Flow</button>
+            <button class="mode-tab-btn" data-mode="sprint">🚀 3: Speed Sprint</button>
+          </div>
+
+          <div class="window-tools">
+            <button id="sound-toggle-btn" class="sound-toggle-btn">🔊 Sound: ON</button>
+            <select id="sound-profile-select" class="sound-profile-select" aria-label="Select switch audio profile">
+              <option value="holypanda">Holy Panda (Thock)</option>
+              <option value="blue">Cherry Blue (Clicky)</option>
+              <option value="creamy">Creamy Linear (Muted)</option>
+              <option value="bubble">Bubble Pop (Drop)</option>
+              <option value="silent">Silent / Mute</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="window-body">
+          <!-- View 1: Stress Shredder Mode -->
+          <div class="shredder-view active" id="shredder-view">
+            <div class="shredder-hud">
+              <div class="stress-meter-container">
+                <span class="stress-meter-label">STRESS:</span>
+                <div class="stress-progress-bar">
+                  <div class="stress-progress-fill" id="stress-fill"></div>
+                </div>
+                <span id="stress-val" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-peach);">85%</span>
+              </div>
+              <div class="shredder-stats">
+                <span>Score: <b id="shredder-score-val" style="color: var(--color-mauve);">0</b></span>
+                <span style="color: var(--color-green);">Target: Type falling words!</span>
+              </div>
+            </div>
+
+            <canvas id="shredder-canvas"></canvas>
+
+            <div class="shredder-input-box">
+              <input type="text" id="shredder-input" class="shredder-input-field" placeholder="Type falling stressor and press Enter..." autocomplete="off" spellcheck="false">
+            </div>
+          </div>
+
+          <!-- View 2: Zen Flow Mode -->
+          <div class="zen-view" id="zen-view">
+            <input type="text" id="zen-typer" class="hidden-typer" autofocus>
+            <div class="breathing-orb-container">
+              <div class="breathing-orb">
+                <span class="breathing-label">BREATHE</span>
+              </div>
+            </div>
+            <div class="zen-text-display" id="zen-text-display">
+              <!-- Dynamically populated -->
+            </div>
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-blue);">
+              ✨ Synchronize your typing with the breathing orb. Click anywhere to type.
+            </div>
+          </div>
+
+          <!-- View 3: Speed Sprint Mode -->
+          <div class="sprint-view" id="sprint-view">
+            <input type="text" id="sprint-typer" class="hidden-typer">
+            <div class="sprint-hud">
+              <div class="sprint-stat-pills">
+                <div class="sprint-stat">
+                  <span class="sprint-stat-val" id="sprint-wpm-val">0</span>
+                  <span class="sprint-stat-lbl">WPM</span>
+                </div>
+                <div class="sprint-stat">
+                  <span class="sprint-stat-val" id="sprint-acc-val">100%</span>
+                  <span class="sprint-stat-lbl">Accuracy</span>
+                </div>
+              </div>
+              <div class="sprint-timer-badge" id="sprint-timer-val">
+                30s
+              </div>
+            </div>
+
+            <div class="sprint-text-area" id="sprint-text-display">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); text-align: center;">
+              ⌨️ Click anywhere and start typing to begin the countdown timer.
+            </div>
+          </div>
+        </div>
+
+        <div class="window-footer">
+          <div class="footer-hotkeys">
+            <span><kbd class="keycap">Esc</kbd> Exit</span>
+            <span><kbd class="keycap">1</kbd> Shredder</span>
+            <span><kbd class="keycap">2</kbd> Zen</span>
+            <span><kbd class="keycap">3</kbd> Sprint</span>
+            <span><kbd class="keycap">Tab</kbd> Sound</span>
+            <span><kbd class="keycap">Ctrl+T</kbd> Timer</span>
+          </div>
+          <button class="btn-rematch" id="btn-simulator-restart">↺ Reset / Restart Mode</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Bento Grid -->
+  <section class="features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Engineered For Focus</span>
+        <h2 class="section-title">Designed for Modern Developers</h2>
+        <p class="section-desc">
+          No heavy web wrappers, no performance anxiety, no distraction. Pure tactile joy directly inside your window manager.
+        </p>
+      </div>
+
+      <div class="bento-grid">
+        <div class="bento-card span-4">
+          <span class="pill-tag">SUB-25MS NATIVE</span>
+          <div class="card-icon">🚀</div>
+          <h3 class="card-title">Instant Window Summon</h3>
+          <p class="card-desc">
+            Press <code>SUPER + Y</code> over your IDE, terminal, or browser. FunType opens in sub-25 milliseconds with zero lag or frame drops.
+          </p>
+        </div>
+
+        <div class="bento-card span-4">
+          <span class="pill-tag">THERAPEUTIC ARCADE</span>
+          <div class="card-icon">💥</div>
+          <h3 class="card-title">Stress Shredder</h3>
+          <p class="card-desc">
+            Shred work nightmares like <code>prod incident</code>, <code>merge conflict</code>, and <code>segfault</code> into glowing neon particle fireworks. Watch stress drop to 0%.
+          </p>
+        </div>
+
+        <div class="bento-card span-4">
+          <span class="pill-tag">MINDFUL RESUSPENSION</span>
+          <div class="card-icon">🌿</div>
+          <h3 class="card-title">Zen Flow & Breathing Orb</h3>
+          <p class="card-desc">
+            A 12-second therapeutic respiration rhythm (4s Inhale / 2s Hold / 4s Exhale / 2s Rest) paired with stoic reflections to lower cortisol and eye strain.
+          </p>
+        </div>
+
+        <div class="bento-card span-6">
+          <span class="pill-tag">TACTILE FEEDBACK</span>
+          <div class="card-icon">🎧</div>
+          <h3 class="card-title">Procedural ASMR Audio Engine</h3>
+          <p class="card-desc">
+            Zero external audio assets or network downloads. Synthesizes authentic Holy Panda, Cherry Blue, Creamy Linear, and Bubble Pop sound waves mathematically in memory at 44.1kHz.
+          </p>
+        </div>
+
+        <div class="bento-card span-6">
+          <span class="pill-tag">ACCURACY & DRILLS</span>
+          <div class="card-icon">📊</div>
+          <h3 class="card-title">Weak Keys Targeter & WPM Graph</h3>
+          <p class="card-desc">
+            Procedural WPM sparkline tracking your typing curve, plus automatic detection of error keys with one-keystroke targeted drill generation (<code>Ctrl+M</code>).
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASMR Switch Showcase -->
+  <section class="audio-section" id="audio">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Audio Acoustics</span>
+        <h2 class="section-title">5 ASMR Mechanical Profiles</h2>
+        <p class="section-desc">
+          Click on any switch card below to preview the procedurally generated tactile audio.
+        </p>
+      </div>
+
+      <div class="audio-cards">
+        <div class="audio-card active" data-profile="holypanda">
+          <div class="audio-card-icon">🐼</div>
+          <div class="audio-card-name">Holy Panda</div>
+          <div class="audio-card-desc">Resonant low-mid frequency body with crisp tactile snap</div>
+          <div class="audio-play-hint">▶ Click to Test</div>
+        </div>
+
+        <div class="audio-card" data-profile="blue">
+          <div class="audio-card-icon">🟦</div>
+          <div class="audio-card-name">Cherry Blue</div>
+          <div class="audio-card-desc">Crisp, high-frequency click with subtle metallic resonance</div>
+          <div class="audio-play-hint">▶ Click to Test</div>
+        </div>
+
+        <div class="audio-card" data-profile="creamy">
+          <div class="audio-card-icon">🧈</div>
+          <div class="audio-card-name">Creamy Linear</div>
+          <div class="audio-card-desc">Smooth, lubricated linear switch with dampened soft pop</div>
+          <div class="audio-play-hint">▶ Click to Test</div>
+        </div>
+
+        <div class="audio-card" data-profile="bubble">
+          <div class="audio-card-icon">🫧</div>
+          <div class="audio-card-name">Bubble Pop</div>
+          <div class="audio-card-desc">Harmonic water droplet frequency sweep for deep zen</div>
+          <div class="audio-play-hint">▶ Click to Test</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Shortcuts Cheatsheet -->
+  <section class="shortcuts-section" id="shortcuts">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Controls</span>
+        <h2 class="section-title">Keyboard Cheatsheet</h2>
+        <p class="section-desc">
+          Built completely keyboard-driven for seamless tiling window manager integration.
+        </p>
+      </div>
+
+      <div class="shortcuts-table-container">
+        <table class="shortcuts-table">
+          <thead>
+            <tr>
+              <th>Key Binding</th>
+              <th>Action / Function</th>
+              <th>Scope</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><kbd class="keycap">SUPER + Y</kbd></td>
+              <td>Summon / Toggle FunType floating window</td>
+              <td>Global System Key</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">Esc</kbd></td>
+              <td>Instant Exit / Dismiss window immediately</td>
+              <td>Any Mode</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">1</kbd> / <kbd class="keycap">F1</kbd></td>
+              <td>Switch to <b>Stress Shredder</b> (Arcade Mode)</td>
+              <td>Anywhere</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">2</kbd> / <kbd class="keycap">F2</kbd></td>
+              <td>Switch to <b>Zen Flow</b> (Breathing Mode)</td>
+              <td>Anywhere</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">3</kbd> / <kbd class="keycap">F3</kbd></td>
+              <td>Switch to <b>Speed Sprint</b> (15s/30s/60s)</td>
+              <td>Anywhere</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">Tab</kbd></td>
+              <td>Cycle mechanical switch audio profile</td>
+              <td>Any Mode</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">F4</kbd></td>
+              <td>Cycle aesthetic themes (Catppuccin, Tokyo Night, Nord...)</td>
+              <td>Any Mode</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">Ctrl + T</kbd></td>
+              <td>Cycle duration: <b>15s / 30s / 60s / Free Fall</b></td>
+              <td>Sprint & Shredder</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">Ctrl + M</kbd></td>
+              <td>Targeted drill generator for your weakest keys</td>
+              <td>Speed Sprint</td>
+            </tr>
+            <tr>
+              <td><kbd class="keycap">Ctrl + R</kbd> / <kbd class="keycap">F5</kbd></td>
+              <td>Instant Reset / Restart active test</td>
+              <td>Any Mode</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="logo-group">
+          <img src="/favicon.svg" alt="FunType Logo" class="logo-icon">
+          <span style="font-family: var(--font-mono); font-weight: 700;">FunType</span>
+          <span class="footer-copy">— Built with Rust for developers. Open Source (MIT).</span>
+        </div>
+
+        <ul class="footer-links">
+          <li><a href="https://github.com/KOUSTAV2409/funtype" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
+          <li><a href="https://github.com/KOUSTAV2409/funtype/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a></li>
+          <li><a href="https://github.com/KOUSTAV2409" target="_blank" rel="noopener noreferrer">Created by @KOUSTAV2409</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
