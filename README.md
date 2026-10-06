@@ -89,7 +89,7 @@ Cycle anytime with `[F4]`:
 
 ### One-line Installation:
 ```bash
-git clone https://github.com/iamkxyz/funtype.git
+git clone https://github.com/KOUSTAV2409/funtype.git
 cd funtype
 ./install.sh
 ```
