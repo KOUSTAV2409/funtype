@@ -303,12 +303,30 @@ class SimulatorApp {
   switchMode(mode) {
     this.activeMode = mode;
     document.querySelectorAll('.mode-pill-btn, .mode-tab-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === mode);
+      const isActive = b.dataset.mode === mode;
+      if (isActive) {
+        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all bg-white/[0.1] text-white border border-white/[0.1] shadow-sm';
+      } else {
+        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all text-neutral-400 hover:text-white';
+      }
     });
 
-    document.getElementById('shredder-view').classList.toggle('active', mode === 'shredder');
-    document.getElementById('zen-view').classList.toggle('active', mode === 'zen');
-    document.getElementById('sprint-view').classList.toggle('active', mode === 'sprint');
+    const shredder = document.getElementById('shredder-view');
+    const zen = document.getElementById('zen-view');
+    const sprint = document.getElementById('sprint-view');
+
+    if (shredder) {
+      shredder.classList.toggle('hidden', mode !== 'shredder');
+      shredder.classList.toggle('block', mode === 'shredder');
+    }
+    if (zen) {
+      zen.classList.toggle('hidden', mode !== 'zen');
+      zen.classList.toggle('flex', mode === 'zen');
+    }
+    if (sprint) {
+      sprint.classList.toggle('hidden', mode !== 'sprint');
+      sprint.classList.toggle('flex', mode === 'sprint');
+    }
 
     if (mode === 'shredder') {
       const inp = document.getElementById('shredder-input');
@@ -633,10 +651,10 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         await navigator.clipboard.writeText(codeElem.textContent.trim());
         copyBtn.textContent = 'Copied';
-        copyBtn.classList.add('copied');
+        copyBtn.classList.add('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/30');
         setTimeout(() => {
           copyBtn.textContent = 'Copy';
-          copyBtn.classList.remove('copied');
+          copyBtn.classList.remove('bg-emerald-500/20', 'text-emerald-400', 'border-emerald-500/30');
         }, 2000);
       } catch (err) {
         console.error('Clipboard copy failed', err);
@@ -667,8 +685,10 @@ cmd + alt - y : ~/.local/bin/funtype
 
   setupTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      setupTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
+      setupTabs.forEach(t => {
+        t.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-[#0f1015] border border-white/[0.08] text-neutral-400 hover:text-white transition-colors';
+      });
+      tab.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-white/[0.1] text-white border border-white/[0.2] transition-colors';
       const cfg = tab.dataset.config;
       if (setupCodeBlock && setupSnippets[cfg]) {
         setupCodeBlock.textContent = setupSnippets[cfg];
