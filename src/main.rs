@@ -103,16 +103,31 @@ async fn main() {
             particles.spawn_floating_text("RESTARTED", screen_w * 0.5, screen_h * 0.5, palette.warning, 24.0);
         }
 
-        // Cycle Sprint Duration via Ctrl+T
-        if is_ctrl && is_key_pressed(KeyCode::T) && current_mode == GameMode::SpeedSprint {
-            speed_sprint.cycle_duration();
-            particles.spawn_floating_text(
-                &format!("{:.0}s SPRINT", speed_sprint.duration),
-                screen_w * 0.5,
-                180.0,
-                palette.primary,
-                18.0,
-            );
+        // Cycle Sprint / Shredder Duration via Ctrl+T
+        if is_ctrl && is_key_pressed(KeyCode::T) {
+            if current_mode == GameMode::SpeedSprint {
+                speed_sprint.cycle_duration();
+                particles.spawn_floating_text(
+                    &format!("{:.0}s SPRINT", speed_sprint.duration),
+                    screen_w * 0.5,
+                    180.0,
+                    palette.primary,
+                    18.0,
+                );
+            } else if current_mode == GameMode::StressShredder {
+                stress_shredder.cycle_duration();
+                let dur_str = match stress_shredder.current_duration() {
+                    Some(s) => format!("{:.0}s SHRED", s),
+                    None => "FREE FALL".to_string(),
+                };
+                particles.spawn_floating_text(
+                    &dur_str,
+                    screen_w * 0.5,
+                    180.0,
+                    palette.primary,
+                    18.0,
+                );
+            }
         }
 
         // Toggle Punctuation & Symbols via Ctrl+P
@@ -186,6 +201,8 @@ async fn main() {
                 }
             } else if current_mode == GameMode::SpeedSprint {
                 speed_sprint.handle_click(mx, my, screen_w, screen_h);
+            } else if current_mode == GameMode::StressShredder {
+                stress_shredder.handle_click(mx, my, screen_w, screen_h);
             }
         }
 
@@ -194,7 +211,7 @@ async fn main() {
 
         match current_mode {
             GameMode::StressShredder => {
-                stress_shredder.update(dt, screen_h, &palette, &mut particles);
+                stress_shredder.update(dt, screen_h, &palette, &mut sound, &mut particles);
             }
             GameMode::ZenFlow => {
                 zen_flow.update(dt);
