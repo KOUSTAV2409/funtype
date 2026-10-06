@@ -48,8 +48,8 @@ if [[ -f "$HYPR_BINDINGS" ]]; then
     if ! grep -q "FunType" "$HYPR_BINDINGS"; then
         echo "" >> "$HYPR_BINDINGS"
         echo "-- FunType - Instant Stress Burster Typing Game" >> "$HYPR_BINDINGS"
-        echo "o.bind(\"SUPER + ALT + F\", \"FunType\", os.getenv(\"HOME\") .. \"/.local/bin/funtype\")" >> "$HYPR_BINDINGS"
-        echo "✨ Added shortcut 'SUPER + ALT + F' to ~/.config/hypr/bindings.lua"
+        echo "o.bind(\"SUPER + Y\", \"FunType\", os.getenv(\"HOME\") .. \"/.local/bin/funtype\")" >> "$HYPR_BINDINGS"
+        echo "✨ Added shortcut 'SUPER + Y' to ~/.config/hypr/bindings.lua"
     else
         echo "ℹ️  Shortcut binding already present in ~/.config/hypr/bindings.lua"
     fi
@@ -70,7 +70,7 @@ echo ""
 echo "🎉 FunType successfully installed!"
 echo "👉 Launch command: funtype"
 if [[ -f "$HYPR_BINDINGS" ]]; then
-    echo "👉 Shortcut: Press SUPER + ALT + F anywhere to summon FunType in milliseconds!"
+    echo "👉 Shortcut: Press SUPER + Y anywhere to summon FunType in milliseconds!"
 fi
 echo "👉 Controls:"
 echo "   - [Esc] Instant Exit / Hide"

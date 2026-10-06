@@ -16,7 +16,7 @@ Working long hours at a computer leads to cognitive overload, screen fatigue, an
 
 **FunType is engineered specifically as a therapeutic stress-burster**:
 - 🚀 **Sub-25ms Launch**: Native GPU-accelerated window (1.6 MB standalone binary) that pops up immediately when summoned.
-- ⌨️ **Global Shortcut**: Press `SUPER + ALT + F` anywhere over your code editor, terminal, or browser to start playing instantly. Press `Esc` anytime to hide.
+- ⌨️ **Global Shortcut**: Press `SUPER + Y` anywhere over your code editor, terminal, or browser to start playing instantly. Press `Esc` anytime to hide.
 - 🎧 **Procedural ASMR Mechanical Audio**: Zero external audio assets—synthesizes rich tactile mechanical switch clicks and deep "thocks" in memory at runtime.
 - 💥 **Explosive Particle Catharsis**: Shred work-stress triggers into glowing neon particle fireworks with screen micro-shakes.
 - 🌿 **Mindful Breathing Guide**: A therapeutic 12-second visual breathing orb (4s Inhale / 2s Hold / 4s Exhale / 2s Rest) paired with philosophical reflections to actively down-regulate cortisol and eye strain.
@@ -72,7 +72,7 @@ Cycle anytime with `[F2]`:
 
 | Key | Action |
 | --- | --- |
-| `SUPER + ALT + F` | **Summon / Launch FunType anywhere** |
+| `SUPER + Y` | **Summon / Launch FunType anywhere** |
 | `Esc` | **Instant Exit / Dismiss** |
 | `1` | Switch to **Stress Shredder** |
 | `2` | Switch to **Zen Flow** |
@@ -97,7 +97,7 @@ The script will:
 1. Build the release binary via `cargo build --release`.
 2. Install the binary to `~/.local/bin/funtype`.
 3. Register the `.desktop` launcher in `~/.local/share/applications/`.
-4. Automatically configure **Hyprland / Omarchy** floating window rules and shortcut (`SUPER + ALT + F`).
+4. Automatically configure **Hyprland / Omarchy** floating window rules and shortcut (`SUPER + Y`).
 
 ---
 
@@ -107,7 +107,7 @@ The script will:
 The installer automatically adds the following to your config:
 - In `~/.config/hypr/bindings.lua`:
   ```lua
-  o.bind("SUPER + ALT + F", "FunType", os.getenv("HOME") .. "/.local/bin/funtype")
+  o.bind("SUPER + Y", "FunType", os.getenv("HOME") .. "/.local/bin/funtype")
   ```
 - In `~/.config/hypr/hyprland.lua`:
   ```lua
@@ -116,7 +116,7 @@ The installer automatically adds the following to your config:
 
 ### Standard Hyprland (`hyprland.conf`)
 ```ini
-bind = SUPER ALT, F, exec, ~/.local/bin/funtype
+bind = SUPER, Y, exec, ~/.local/bin/funtype
 windowrulev2 = float, class:^(funtype)$
 windowrulev2 = size 1040 660, class:^(funtype)$
 windowrulev2 = center, class:^(funtype)$
