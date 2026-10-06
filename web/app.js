@@ -600,18 +600,19 @@ class SimulatorApp {
   renderSprintText() {
     const container = document.getElementById('sprint-text-display');
     if (!container) return;
-    let html = '';
+    const fragment = document.createDocumentFragment();
     for (let i = 0; i < this.sprintQuote.length; i++) {
       const char = this.sprintQuote[i];
-      let cls = '';
+      const span = document.createElement('span');
       if (i < this.sprintIndex) {
-        cls = 'char-correct';
+        span.className = 'char-correct';
       } else if (i === this.sprintIndex) {
-        cls = 'char-current';
+        span.className = 'char-current';
       }
-      html += `<span class="${cls}">${char}</span>`;
+      span.textContent = char;
+      fragment.appendChild(span);
     }
-    container.innerHTML = html;
+    container.replaceChildren(fragment);
   }
 
   handleSprintInput(e) {
@@ -704,18 +705,19 @@ class SimulatorApp {
     const container = document.getElementById('zen-text-display');
     if (!container) return;
     const currentPhrase = this.zenPhrases[this.zenPhraseIndex];
-    let html = '';
+    const fragment = document.createDocumentFragment();
     for (let i = 0; i < currentPhrase.length; i++) {
       const char = currentPhrase[i];
-      let cls = '';
+      const span = document.createElement('span');
       if (i < this.zenCharIndex) {
-        cls = 'char-correct';
+        span.className = 'char-correct';
       } else if (i === this.zenCharIndex) {
-        cls = 'char-current';
+        span.className = 'char-current';
       }
-      html += `<span class="${cls}">${char}</span>`;
+      span.textContent = char;
+      fragment.appendChild(span);
     }
-    container.innerHTML = html;
+    container.replaceChildren(fragment);
   }
 
   handleZenInput(e) {
