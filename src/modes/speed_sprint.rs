@@ -489,7 +489,7 @@ impl SpeedSprint {
     pub fn draw(&mut self, screen_w: f32, screen_h: f32, palette: &ThemePalette, offset_x: f32, offset_y: f32) {
         if self.is_finished {
             let card_w = 580.0;
-            let card_h = 400.0;
+            let card_h = 410.0;
             let card_x = (screen_w - card_w) * 0.5 + offset_x;
             let card_y = (screen_h - card_h) * 0.5 + offset_y;
 
@@ -519,7 +519,7 @@ impl SpeedSprint {
             draw_text(&raw_val, card_x + 460.0, card_y + 82.0, 48.0, palette.primary);
 
             if self.is_new_pb {
-                let badge = "★ NEW PERSONAL BEST! ★";
+                let badge = "* NEW PERSONAL BEST! *";
                 let b_dims = measure_text(badge, None, 14, 1.0);
                 draw_text(badge, card_x + (card_w - b_dims.width) * 0.5, card_y + 20.0, 14.0, palette.warning);
             }
@@ -609,7 +609,7 @@ impl SpeedSprint {
             let weak_btn_w = if has_weak_keys { 180.0 } else { 0.0 };
             let total_pills_w = 3.0 * pill_w + 2.0 * spacing + if has_weak_keys { spacing + weak_btn_w } else { 0.0 };
             let start_x = card_x + (card_w - total_pills_w) * 0.5;
-            let btn_y = card_y + card_h - 90.0;
+            let btn_y = card_y + card_h - 96.0;
 
             for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
                 let bx = start_x + (idx as f32 * (pill_w + spacing));
@@ -630,7 +630,7 @@ impl SpeedSprint {
 
             if has_weak_keys {
                 let wbx = start_x + (3.0 * (pill_w + spacing));
-                let wlabel = "🎯 Practice Weak Keys";
+                let wlabel = ">> Practice Weak Keys";
                 draw_rectangle(wbx, btn_y, weak_btn_w, 28.0, palette.surface_bright);
                 draw_rectangle_lines(wbx, btn_y, weak_btn_w, 28.0, 1.5, palette.warning);
                 let wl_dims = measure_text(wlabel, None, 13, 1.0);
@@ -639,7 +639,7 @@ impl SpeedSprint {
 
             let restart_hint = "Press [Tab] or [Enter] to restart  |  [Ctrl+M] Practice Weak Keys  |  [Ctrl+R] Reset";
             let r_dims = measure_text(restart_hint, None, 13, 1.0);
-            draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 18.0, 13.0, palette.muted);
+            draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 22.0, 13.0, palette.muted);
             return;
         }
 
