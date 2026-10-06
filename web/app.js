@@ -179,7 +179,10 @@ class SimulatorApp {
     this.activeMode = 'shredder';
 
     // Shredder state
-    this.stressors = [];
+    this.stressors = [
+      { text: 'merge conflict', x: 60, y: 70, speed: 0.55 },
+      { text: 'prod incident', x: 280, y: 45, speed: 0.5 }
+    ];
     this.stressLevel = 85;
     this.score = 0;
     this.particles = [];
@@ -222,6 +225,30 @@ class SimulatorApp {
     this.renderSprintText();
     this.renderZenText();
     this.startShredderLoop();
+    this.focusActiveInput();
+  }
+
+  focusActiveInput() {
+    if (this.activeMode === 'shredder') {
+      const inp = document.getElementById('shredder-input');
+      if (inp) inp.focus();
+    } else if (this.activeMode === 'zen') {
+      const inp = document.getElementById('zen-typer');
+      if (inp) inp.focus();
+    } else if (this.activeMode === 'sprint') {
+      const inp = document.getElementById('sprint-typer');
+      if (inp) inp.focus();
+    }
+  }
+
+  cycleAudioProfile() {
+    const profiles = ['holypanda', 'blue', 'creamy', 'bubble', 'silent'];
+    const currentIdx = profiles.indexOf(audio.profile);
+    const nextIdx = (currentIdx + 1) % profiles.length;
+    audio.profile = profiles[nextIdx];
+    const select = document.getElementById('sound-profile-select');
+    if (select) select.value = audio.profile;
+    audio.playKey();
   }
 
   bindEvents() {
@@ -267,6 +294,16 @@ class SimulatorApp {
       });
     }
 
+    // Canvas & Shredder view click to focus
+    const shredderView = document.getElementById('shredder-view');
+    if (shredderView) {
+      shredderView.addEventListener('click', (e) => {
+        if (e.target !== shredderInput) {
+          if (shredderInput) shredderInput.focus();
+        }
+      });
+    }
+
     // Sprint Typer Input
     const sprintTyper = document.getElementById('sprint-typer');
     if (sprintTyper) {
@@ -290,6 +327,47 @@ class SimulatorApp {
         zenView.addEventListener('click', () => zenTyper.focus());
       }
     }
+
+    // Global stage click to focus active typer
+    const stage = document.getElementById('simulator-stage');
+    if (stage) {
+      stage.addEventListener('click', (e) => {
+        if (!e.target.closest('button, select, a')) {
+          this.focusActiveInput();
+        }
+      });
+    }
+
+    // Global keyboard shortcuts (1, 2, 3 to switch, Tab for sound, printable to route)
+    window.addEventListener('keydown', (e) => {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+
+      if (e.key === 'Escape') {
+        if (isInput) activeEl.blur();
+        return;
+      }
+
+      if (e.key === 'Tab' && document.getElementById('simulator')?.contains(activeEl)) {
+        e.preventDefault();
+        this.cycleAudioProfile();
+        return;
+      }
+
+      // Switch mode with 1, 2, 3 if not typing text inside input
+      if (!isInput && (e.key === '1' || e.key === '2' || e.key === '3')) {
+        e.preventDefault();
+        if (e.key === '1') this.switchMode('shredder');
+        if (e.key === '2') this.switchMode('zen');
+        if (e.key === '3') this.switchMode('sprint');
+        return;
+      }
+
+      // If printable key and no input focused, focus active mode input immediately
+      if (!isInput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        this.focusActiveInput();
+      }
+    });
 
     // Reset button
     const restartBtn = document.getElementById('btn-simulator-restart');
@@ -329,21 +407,20 @@ class SimulatorApp {
     }
 
     if (mode === 'shredder') {
-      const inp = document.getElementById('shredder-input');
-      if (inp) inp.focus();
+      if (this.resizeCanvas) this.resizeCanvas();
     } else if (mode === 'sprint') {
-      const inp = document.getElementById('sprint-typer');
-      if (inp) inp.focus();
       this.resetSprint();
-    } else if (mode === 'zen') {
-      const inp = document.getElementById('zen-typer');
-      if (inp) inp.focus();
     }
+
+    this.focusActiveInput();
   }
 
   resetCurrentMode() {
     if (this.activeMode === 'shredder') {
-      this.stressors = [];
+      this.stressors = [
+        { text: 'merge conflict', x: 60, y: 70, speed: 0.55 },
+        { text: 'prod incident', x: 280, y: 45, speed: 0.5 }
+      ];
       this.stressLevel = 85;
       this.score = 0;
       this.updateShredderHud();
@@ -363,12 +440,16 @@ class SimulatorApp {
   setupShredderCanvas() {
     if (!this.shredderCanvas) return;
     const resize = () => {
-      const rect = this.shredderCanvas.parentElement.getBoundingClientRect();
-      this.shredderCanvas.width = rect.width;
-      this.shredderCanvas.height = rect.height;
+      const parent = this.shredderCanvas.parentElement;
+      const rect = parent ? parent.getBoundingClientRect() : null;
+      const w = (rect && rect.width > 0) ? rect.width : (this.shredderCanvas.clientWidth || 800);
+      const h = (rect && rect.height > 0) ? rect.height : (this.shredderCanvas.clientHeight || 320);
+      this.shredderCanvas.width = Math.max(w, 320);
+      this.shredderCanvas.height = Math.max(h, 240);
     };
     resize();
     window.addEventListener('resize', resize);
+    this.resizeCanvas = resize;
   }
 
   startShredderLoop() {
@@ -389,7 +470,7 @@ class SimulatorApp {
       const x = 40 + Math.random() * (this.shredderCanvas.width - 220);
       this.stressors.push({
         text: word,
-        x: x,
+        x: Math.max(30, x),
         y: 20,
         speed: 0.5 + Math.random() * 0.35
       });
@@ -417,32 +498,53 @@ class SimulatorApp {
   }
 
   renderShredder() {
+    if (!this.ctx) return;
     this.ctx.clearRect(0, 0, this.shredderCanvas.width, this.shredderCanvas.height);
 
     this.ctx.font = '13.5px "JetBrains Mono", monospace';
     this.ctx.textAlign = 'left';
 
+    const shredderInput = document.getElementById('shredder-input');
+    const currentTyped = shredderInput ? shredderInput.value.trim().toLowerCase() : '';
+
     this.stressors.forEach(s => {
       const textWidth = this.ctx.measureText(s.text).width;
+      const isPrefixMatch = currentTyped.length > 0 && s.text.toLowerCase().startsWith(currentTyped);
       
       // Clean pill background
       this.ctx.fillStyle = 'rgba(28, 27, 34, 0.95)';
-      this.ctx.strokeStyle = 'rgba(99, 102, 241, 0.4)';
-      this.ctx.lineWidth = 1;
+      this.ctx.strokeStyle = isPrefixMatch ? '#6366f1' : 'rgba(255, 255, 255, 0.12)';
+      this.ctx.lineWidth = isPrefixMatch ? 1.5 : 1;
       this.ctx.beginPath();
-      this.ctx.roundRect(s.x - 8, s.y - 17, textWidth + 16, 24, 6);
+      if (this.ctx.roundRect) {
+        this.ctx.roundRect(s.x - 8, s.y - 17, textWidth + 16, 24, 6);
+      } else {
+        this.ctx.rect(s.x - 8, s.y - 17, textWidth + 16, 24);
+      }
       this.ctx.fill();
       this.ctx.stroke();
 
-      // Text
-      this.ctx.fillStyle = '#f4f4f7';
-      this.ctx.fillText(s.text, s.x, s.y);
+      // Text with highlighted match
+      if (isPrefixMatch) {
+        const matchedText = s.text.slice(0, currentTyped.length);
+        const restText = s.text.slice(currentTyped.length);
+        const matchedWidth = this.ctx.measureText(matchedText).width;
+
+        this.ctx.fillStyle = '#818cf8';
+        this.ctx.fillText(matchedText, s.x, s.y);
+
+        this.ctx.fillStyle = '#f4f4f7';
+        this.ctx.fillText(restText, s.x + matchedWidth, s.y);
+      } else {
+        this.ctx.fillStyle = '#f4f4f7';
+        this.ctx.fillText(s.text, s.x, s.y);
+      }
     });
 
     // Clean particles
     this.particles.forEach(p => {
       this.ctx.fillStyle = p.color;
-      this.ctx.globalAlpha = p.alpha;
+      this.ctx.globalAlpha = Math.max(0, p.alpha);
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       this.ctx.fill();
@@ -688,11 +790,27 @@ cmd + alt - y : ~/.local/bin/funtype
       setupTabs.forEach(t => {
         t.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors';
       });
-      tab.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-primary transition-colors';
+      tab.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-border transition-colors';
       const cfg = tab.dataset.config;
       if (setupCodeBlock && setupSnippets[cfg]) {
         setupCodeBlock.textContent = setupSnippets[cfg];
       }
     });
   });
+
+  // User gesture audio unlock
+  const unlockAudio = () => {
+    audio.init();
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+    window.removeEventListener('touchstart', unlockAudio);
+  };
+  window.addEventListener('click', unlockAudio, { passive: true });
+  window.addEventListener('keydown', unlockAudio, { passive: true });
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
+
+  // Auto-focus simulator input after initial layout paint
+  setTimeout(() => {
+    app.focusActiveInput();
+  }, 250);
 });

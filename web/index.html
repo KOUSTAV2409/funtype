@@ -181,6 +181,26 @@
       width: 0 !important;
       height: 0 !important;
     }
+
+    /* Interactive Typer Feedback Tokens */
+    .char-correct {
+      color: var(--primary) !important;
+      font-weight: 500;
+    }
+    .char-wrong {
+      color: var(--destructive) !important;
+      background-color: oklch(0.704 0.191 22.216 / 20%) !important;
+      border-radius: 2px;
+    }
+    .char-current {
+      color: var(--foreground) !important;
+      border-bottom: 2px solid var(--primary);
+      animation: blinkCaret 0.9s infinite ease-in-out;
+    }
+    @keyframes blinkCaret {
+      0%, 100% { border-bottom-color: var(--primary); }
+      50% { border-bottom-color: transparent; }
+    }
   </style>
 </head>
 <body class="bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-white min-h-screen relative overflow-x-hidden">
@@ -262,7 +282,7 @@
   <section class="pb-20 max-w-6xl mx-auto px-4 sm:px-6 relative" id="simulator">
     <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/[0.04] blur-3xl pointer-events-none rounded-2xl -z-10"></div>
 
-    <div class="bg-card border border-border rounded-2xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden relative">
+    <div class="bg-card border border-border rounded-xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden relative">
       
       <!-- Window Titlebar -->
       <div class="flex items-center justify-between px-4 py-3 bg-secondary/50 border-b border-border flex-wrap gap-3">
@@ -294,10 +314,10 @@
       </div>
 
       <!-- Window Stage -->
-      <div class="min-h-[360px] bg-background/95 relative flex flex-col justify-between p-6">
+      <div class="min-h-[360px] bg-background/95 relative flex flex-col justify-between p-6 cursor-text" id="simulator-stage">
         
         <!-- View 1: Shredder Mode -->
-        <div class="relative w-full h-[320px] block" id="shredder-view">
+        <div class="relative w-full h-[320px] block cursor-pointer" id="shredder-view">
           <div class="absolute top-2 left-2 right-2 flex justify-between items-center pointer-events-none z-10">
             <div class="flex items-center gap-2 bg-card/90 backdrop-blur-md px-3 py-1 rounded-full border border-border">
               <span class="font-mono text-[11px] font-semibold text-primary">STRESS:</span>
@@ -311,29 +331,29 @@
             </div>
           </div>
 
-          <canvas id="shredder-canvas" class="w-full h-full block"></canvas>
+          <canvas id="shredder-canvas" class="w-full h-full block cursor-pointer"></canvas>
 
           <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
-            <input type="text" id="shredder-input" class="w-full bg-card/90 backdrop-blur-md border border-border focus:border-primary rounded-lg px-4 py-2 text-foreground font-mono text-sm text-center outline-none shadow-xl transition-all" placeholder="Type falling stressor..." autocomplete="off" spellcheck="false">
+            <input type="text" id="shredder-input" class="w-full bg-card/90 backdrop-blur-md border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-lg px-4 py-2 text-foreground font-mono text-sm text-center outline-none shadow-xl transition-all" placeholder="Type falling stressor..." autocomplete="off" spellcheck="false">
           </div>
         </div>
 
         <!-- View 2: Zen Flow Mode -->
         <div class="hidden flex-col items-center justify-center h-[320px] text-center relative cursor-text" id="zen-view">
-          <input type="text" id="zen-typer" class="absolute inset-0 opacity-0 cursor-text">
-          <div class="w-28 h-28 rounded-full border border-primary/30 bg-radial from-primary/10 to-transparent flex items-center justify-center mb-6 animate-zen-orb">
+          <input type="text" id="zen-typer" class="absolute inset-0 opacity-0 cursor-text" autocomplete="off" spellcheck="false">
+          <div class="w-28 h-28 rounded-full border border-border bg-radial from-primary/10 to-transparent flex items-center justify-center mb-6 animate-zen-orb pointer-events-none">
             <span class="font-mono text-xs font-semibold tracking-widest text-primary">BREATHE</span>
           </div>
-          <div class="font-mono text-base text-foreground max-w-xl leading-relaxed tracking-wide" id="zen-text-display">
+          <div class="font-mono text-base text-muted-foreground max-w-xl leading-relaxed tracking-wide pointer-events-none" id="zen-text-display">
             <!-- Populated dynamically -->
           </div>
-          <span class="text-xs font-mono text-muted-foreground mt-4">Click anywhere inside to type cadence</span>
+          <span class="text-xs font-mono text-muted-foreground mt-4 pointer-events-none">Click anywhere inside to type cadence</span>
         </div>
 
         <!-- View 3: Sprint Mode -->
         <div class="hidden flex-col justify-between h-[320px] relative cursor-text" id="sprint-view">
-          <input type="text" id="sprint-typer" class="absolute inset-0 opacity-0 cursor-text">
-          <div class="flex items-center justify-between pb-3 border-b border-border">
+          <input type="text" id="sprint-typer" class="absolute inset-0 opacity-0 cursor-text" autocomplete="off" spellcheck="false">
+          <div class="flex items-center justify-between pb-3 border-b border-border pointer-events-none">
             <div class="flex gap-6">
               <div class="flex flex-col">
                 <span class="font-mono text-xl font-semibold text-foreground" id="sprint-wpm-val">0</span>
@@ -344,14 +364,14 @@
                 <span class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Accuracy</span>
               </div>
             </div>
-            <div class="font-mono text-sm font-semibold text-primary bg-primary/10 border border-primary/20 px-2.5 py-1 rounded" id="sprint-timer-val">30s</div>
+            <div class="font-mono text-sm font-semibold text-primary bg-primary/10 border border-border px-2.5 py-1 rounded" id="sprint-timer-val">30s</div>
           </div>
 
-          <div class="font-mono text-base text-muted-foreground leading-loose select-none py-6" id="sprint-text-display">
+          <div class="font-mono text-base text-muted-foreground leading-loose select-none py-6 pointer-events-none" id="sprint-text-display">
             <!-- Populated dynamically -->
           </div>
 
-          <div class="text-xs font-mono text-muted-foreground text-center">Click anywhere to start typing the countdown sprint</div>
+          <div class="text-xs font-mono text-muted-foreground text-center pointer-events-none">Click anywhere to start typing the countdown sprint</div>
         </div>
 
       </div>
@@ -382,7 +402,7 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
       <!-- Mode 01 -->
-      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 group">
+      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
         <div>
           <div class="flex items-center justify-between mb-4">
             <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">01</span>
@@ -400,7 +420,7 @@
       </div>
 
       <!-- Mode 02 -->
-      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 group">
+      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
         <div>
           <div class="flex items-center justify-between mb-4">
             <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">02</span>
@@ -418,7 +438,7 @@
       </div>
 
       <!-- Mode 03 -->
-      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-2xl p-6 flex flex-col justify-between transition-all duration-200 group">
+      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
         <div>
           <div class="flex items-center justify-between mb-4">
             <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">03</span>
@@ -449,13 +469,13 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- FunType Native Column -->
-      <div class="bg-gradient-to-b from-primary/10 to-card border border-primary/30 rounded-2xl p-6 shadow-xl">
+      <div class="bg-gradient-to-b from-primary/10 to-card border border-border rounded-xl p-6 shadow-xl">
         <div class="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <div>
             <h3 class="text-base font-semibold text-foreground">FunType (Rust Native)</h3>
             <span class="text-xs text-muted-foreground">Directly on Wayland / X11 / Cocoa</span>
           </div>
-          <span class="font-mono text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-primary/30 font-medium">OPTIMAL</span>
+          <span class="font-mono text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-border font-medium">OPTIMAL</span>
         </div>
 
         <div class="divide-y divide-border text-sm">
@@ -483,7 +503,7 @@
       </div>
 
       <!-- Heavy Web Wrapper Column -->
-      <div class="bg-card border border-border rounded-2xl p-6">
+      <div class="bg-card border border-border rounded-xl p-6">
         <div class="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <div>
             <h3 class="text-base font-semibold text-muted-foreground">Traditional Web / Electron Tests</h3>
@@ -529,12 +549,12 @@
     </div>
 
     <div class="flex gap-2 mb-3">
-      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-primary transition-colors" data-config="hyprland">Hyprland / Omarchy</button>
+      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-border transition-colors" data-config="hyprland">Hyprland / Omarchy</button>
       <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors" data-config="i3">i3 / Sway</button>
       <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors" data-config="macos">macOS (skhd)</button>
     </div>
 
-    <div class="bg-card border border-border rounded-2xl p-5 font-mono text-xs text-foreground overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden leading-relaxed shadow-lg" id="setup-code-block">
+    <div class="bg-card border border-border rounded-xl p-5 font-mono text-xs text-foreground overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden leading-relaxed shadow-lg" id="setup-code-block">
 # ~/.config/hypr/hyprland.conf (or ~/.config/hypr/bindings.lua in Omarchy)
 bind = SUPER, Y, exec, ~/.local/bin/funtype
 windowrulev2 = float, class:^(funtype)$
