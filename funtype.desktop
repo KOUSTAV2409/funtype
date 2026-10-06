@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=FunType
+Comment=Instant-launch stress-burster typing game for computer workers
+Exec=funtype
+Icon=input-keyboard
+Terminal=false
+Type=Application
+Categories=Game;Utility;
+Keywords=typing;game;zen;stress;speed;monkeytype;
+StartupWMClass=funtype

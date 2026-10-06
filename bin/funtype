@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# FunType - Instant launcher & window toggle for Unix / Omarchy / Linux / macOS
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+BIN="$ROOT/target/release/funtype"
+
+# Compile if not already compiled
+if [[ ! -f "$BIN" ]]; then
+    echo "⚡ FunType binary not found. Compiling release build..."
+    (cd "$ROOT" && cargo build --release)
+fi
+
+# Hyprland fast toggle logic
+if command -v hyprctl >/dev/null 2>&1 && [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
+    # Check if funtype window already exists
+    FUNTYPE_PID=$(pgrep -x "funtype" | head -n 1)
+    if [[ -n "$FUNTYPE_PID" ]]; then
+        # Check if argument is --toggle or if toggle is desired
+        if [[ "$1" == "--toggle" ]] || [[ "$1" == "-t" ]]; then
+            # If active, close it (or kill so it toggles off cleanly)
+            kill -TERM "$FUNTYPE_PID" 2>/dev/null
+            exit 0
+        else
+            # Focus existing window
+            hyprctl dispatch focuswindow "class:^(funtype)$" 2>/dev/null
+            exit 0
+        fi
+    fi
+fi
+
+# Launch FunType
+exec "$BIN" "$@"
