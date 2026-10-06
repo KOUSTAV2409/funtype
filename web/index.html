@@ -57,6 +57,18 @@
       }
     }
   </script>
+  <style>
+    /* Complete scrollbar elimination */
+    *, *::before, *::after {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+  </style>
 </head>
 <body class="bg-[#090a0d] text-[#f4f4f7] font-sans antialiased selection:bg-[#3074fe]/30 selection:text-white min-h-screen relative overflow-x-hidden">
 
@@ -112,12 +124,12 @@
     </p>
 
     <!-- Install Command Box -->
-    <div class="max-w-xl mx-auto flex items-center justify-between bg-[#13141b] border border-white/[0.12] hover:border-white/[0.25] rounded-lg p-2 pl-4 shadow-xl transition-colors mb-10">
-      <div class="flex items-center gap-2.5 font-mono text-xs sm:text-sm text-neutral-200 overflow-x-auto whitespace-nowrap">
-        <span class="text-emerald-400 select-none">$</span>
-        <code id="install-cmd-text">curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash</code>
+    <div class="max-w-2xl mx-auto flex items-center justify-between bg-[#13141b] border border-white/[0.12] hover:border-white/[0.25] rounded-lg p-2.5 pl-4 shadow-xl transition-colors mb-10 overflow-hidden">
+      <div class="flex items-center gap-2.5 font-mono text-xs sm:text-sm text-neutral-200 min-w-0 overflow-hidden">
+        <span class="text-emerald-400 select-none shrink-0">$</span>
+        <code id="install-cmd-text" class="truncate select-all">curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash</code>
       </div>
-      <button class="px-3 py-1.5 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] rounded text-xs font-mono font-medium text-white transition-all flex items-center gap-1.5 shrink-0 active:scale-95" id="install-copy-btn" aria-label="Copy install command">
+      <button class="px-3.5 py-1.5 ml-3 bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] rounded text-xs font-mono font-medium text-white transition-all flex items-center gap-1.5 shrink-0 active:scale-95" id="install-copy-btn" aria-label="Copy install command">
         <span>Copy</span>
       </button>
     </div>
@@ -439,7 +451,7 @@
       <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-[#0f1015] border border-white/[0.08] text-neutral-400 hover:text-white transition-colors" data-config="macos">macOS (skhd)</button>
     </div>
 
-    <div class="bg-[#13141b] border border-white/[0.1] rounded-xl p-5 font-mono text-xs text-neutral-200 overflow-x-auto leading-relaxed shadow-lg" id="setup-code-block">
+    <div class="bg-[#13141b] border border-white/[0.1] rounded-xl p-5 font-mono text-xs text-neutral-200 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden leading-relaxed shadow-lg" id="setup-code-block">
 # ~/.config/hypr/hyprland.conf (or ~/.config/hypr/bindings.lua in Omarchy)
 bind = SUPER, Y, exec, ~/.local/bin/funtype
 windowrulev2 = float, class:^(funtype)$
