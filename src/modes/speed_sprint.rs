@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use macroquad::prelude::*;
 use crate::audio::SoundEngine;
 use crate::particles::ParticleSystem;
@@ -29,9 +30,29 @@ pub struct SpeedSprint {
     pub is_new_pb: bool,
     pub pb_burst_spawned: bool,
     pub punctuation_mode: bool,
+    pub wpm_history: Vec<f32>,
+    pub sample_timer: f32,
+    pub typo_counts: HashMap<char, u32>,
 }
 
 impl SpeedSprint {
+    pub fn standard_pool() -> Vec<&'static str> {
+        vec![
+            "the", "be", "to", "of", "and", "a", "in", "that", "have", "it", "for", "not",
+            "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from",
+            "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would",
+            "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which",
+            "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know",
+            "take", "people", "into", "year", "your", "good", "some", "could", "them", "see",
+            "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
+            "also", "back", "after", "use", "two", "how", "our", "work", "first", "well",
+            "way", "even", "new", "want", "because", "any", "these", "give", "day", "most",
+            "us", "great", "such", "through", "code", "focus", "flow", "mind", "calm", "speed",
+            "system", "rust", "state", "point", "form", "life", "light", "space", "clear",
+            "real", "still", "world", "hand", "high", "place", "hold", "turn", "right", "move",
+        ]
+    }
+
     pub fn new() -> Self {
         let mut sprint = Self {
             words: Vec::new(),
@@ -56,6 +77,9 @@ impl SpeedSprint {
             is_new_pb: false,
             pb_burst_spawned: false,
             punctuation_mode: false,
+            wpm_history: Vec::new(),
+            sample_timer: 0.0,
+            typo_counts: HashMap::new(),
         };
         sprint.generate_words();
         sprint
@@ -80,6 +104,65 @@ impl SpeedSprint {
         self.reset();
     }
 
+    pub fn top_typos(&self) -> Vec<(char, u32)> {
+        let mut list: Vec<(char, u32)> = self.typo_counts.iter()
+            .filter(|(c, _)| c.is_alphabetic())
+            .map(|(&c, &n)| (c, n))
+            .collect();
+        list.sort_by(|a, b| b.1.cmp(&a.1));
+        list.truncate(3);
+        list
+    }
+
+    pub fn practice_weak_keys(&mut self) {
+        let top = self.top_typos();
+        let weak_chars: Vec<char> = top.into_iter().map(|(c, _)| c).collect();
+        let pool = Self::standard_pool();
+
+        let matching_words: Vec<String> = if weak_chars.is_empty() {
+            pool.iter().map(|&s| s.to_string()).collect()
+        } else {
+            let filtered: Vec<String> = pool
+                .iter()
+                .filter(|w| w.chars().any(|c| weak_chars.contains(&c.to_ascii_lowercase())))
+                .map(|&s| s.to_string())
+                .collect();
+            if filtered.is_empty() {
+                pool.iter().map(|&s| s.to_string()).collect()
+            } else {
+                filtered
+            }
+        };
+
+        self.words.clear();
+        for _ in 0..160 {
+            let idx = rand::gen_range(0, matching_words.len());
+            self.words.push(matching_words[idx].clone());
+        }
+
+        self.current_word_idx = 0;
+        self.current_input.clear();
+        self.typed_history.clear();
+        self.correct_chars = 0;
+        self.incorrect_chars = 0;
+        self.extra_chars = 0;
+        self.missed_chars = 0;
+        self.time_remaining = self.duration;
+        self.is_started = false;
+        self.is_finished = false;
+        self.combo = 0;
+        self.max_combo = 0;
+        self.caret_x = 120.0;
+        self.caret_y = 250.0;
+        self.target_caret_x = 120.0;
+        self.target_caret_y = 250.0;
+        self.is_new_pb = false;
+        self.pb_burst_spawned = false;
+        self.wpm_history.clear();
+        self.sample_timer = 0.0;
+        self.typo_counts.clear();
+    }
+
     pub fn reset(&mut self) {
         self.generate_words();
         self.current_word_idx = 0;
@@ -100,25 +183,13 @@ impl SpeedSprint {
         self.target_caret_y = 250.0;
         self.is_new_pb = false;
         self.pb_burst_spawned = false;
+        self.wpm_history.clear();
+        self.sample_timer = 0.0;
+        self.typo_counts.clear();
     }
 
     fn generate_words(&mut self) {
-        // Standard high-frequency English typing words (Monkeytype English 200 standard)
-        let pool = vec![
-            "the", "be", "to", "of", "and", "a", "in", "that", "have", "it", "for", "not",
-            "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from",
-            "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would",
-            "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which",
-            "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know",
-            "take", "people", "into", "year", "your", "good", "some", "could", "them", "see",
-            "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
-            "also", "back", "after", "use", "two", "how", "our", "work", "first", "well",
-            "way", "even", "new", "want", "because", "any", "these", "give", "day", "most",
-            "us", "great", "such", "through", "code", "focus", "flow", "mind", "calm", "speed",
-            "system", "rust", "state", "point", "form", "life", "light", "space", "clear",
-            "real", "still", "world", "hand", "high", "place", "hold", "turn", "right", "move",
-        ];
-
+        let pool = Self::standard_pool();
         let num_pool = vec!["42", "100", "2026", "1", "10", "256", "365", "12", "7", "99"];
 
         self.words.clear();
@@ -180,6 +251,9 @@ impl SpeedSprint {
 
                 // Check missed characters if user pressed space early
                 if self.current_input.len() < target_chars.len() {
+                    for &mc in &target_chars[self.current_input.len()..] {
+                        *self.typo_counts.entry(mc.to_ascii_lowercase()).or_insert(0) += 1;
+                    }
                     self.missed_chars += (target_chars.len() - self.current_input.len()) as u32;
                     self.combo = 0;
                 } else if self.current_input == *target_word {
@@ -234,6 +308,8 @@ impl SpeedSprint {
                 // Typo!
                 self.incorrect_chars += 1;
                 self.combo = 0;
+                let expected = target_chars[char_idx].to_ascii_lowercase();
+                *self.typo_counts.entry(expected).or_insert(0) += 1;
                 particles.spawn_keystroke_spark(self.caret_x, self.caret_y - 8.0, palette.danger);
             }
         } else {
@@ -262,23 +338,34 @@ impl SpeedSprint {
 
     pub fn handle_click(&mut self, mx: f32, my: f32, screen_w: f32, screen_h: f32) -> bool {
         if self.is_finished {
-            let card_w = 540.0;
-            let card_h = 320.0;
+            let card_w = 580.0;
+            let card_h = 400.0;
             let card_x = (screen_w - card_w) * 0.5;
             let card_y = (screen_h - card_h) * 0.5;
-            let btn_y = card_y + card_h - 70.0;
-            let btn_h = 32.0;
+            let btn_y = card_y + card_h - 90.0;
+            let btn_h = 28.0;
 
             if my >= btn_y && my <= btn_y + btn_h {
-                let pill_w = 64.0;
-                let spacing = 12.0;
-                let total_w = 3.0 * pill_w + 2.0 * spacing;
-                let start_x = card_x + (card_w - total_w) * 0.5;
+                let pill_w = 60.0;
+                let spacing = 10.0;
+                let top_typos = self.top_typos();
+                let has_weak_keys = !top_typos.is_empty();
+                let weak_btn_w = if has_weak_keys { 180.0 } else { 0.0 };
+                let total_pills_w = 3.0 * pill_w + 2.0 * spacing + if has_weak_keys { spacing + weak_btn_w } else { 0.0 };
+                let start_x = card_x + (card_w - total_pills_w) * 0.5;
 
                 for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
                     let bx = start_x + (idx as f32 * (pill_w + spacing));
                     if mx >= bx && mx <= bx + pill_w {
                         self.set_duration(dur);
+                        return true;
+                    }
+                }
+
+                if has_weak_keys {
+                    let wbx = start_x + (3.0 * (pill_w + spacing));
+                    if mx >= wbx && mx <= wbx + weak_btn_w {
+                        self.practice_weak_keys();
                         return true;
                     }
                 }
@@ -330,10 +417,22 @@ impl SpeedSprint {
     ) {
         if self.is_started && !self.is_finished {
             self.time_remaining -= dt;
+            self.sample_timer += dt;
+            if self.sample_timer >= 1.0 {
+                self.sample_timer = 0.0;
+                let cur = self.wpm();
+                if cur > 0.0 {
+                    self.wpm_history.push(cur);
+                }
+            }
+
             if self.time_remaining <= 0.0 {
                 self.time_remaining = 0.0;
                 self.is_finished = true;
                 let final_wpm = self.wpm();
+                if self.wpm_history.is_empty() || (self.wpm_history.last().copied().unwrap_or(0.0) - final_wpm).abs() > 0.5 {
+                    self.wpm_history.push(final_wpm);
+                }
                 if self.stats.record_score(self.duration, final_wpm) {
                     self.is_new_pb = true;
                 }
@@ -389,60 +488,128 @@ impl SpeedSprint {
 
     pub fn draw(&mut self, screen_w: f32, screen_h: f32, palette: &ThemePalette, offset_x: f32, offset_y: f32) {
         if self.is_finished {
-            // Results Card (Styled after Monkeytype's celebrated clean layout)
-            let card_w = 540.0;
-            let card_h = 320.0;
+            let card_w = 580.0;
+            let card_h = 400.0;
             let card_x = (screen_w - card_w) * 0.5 + offset_x;
             let card_y = (screen_h - card_h) * 0.5 + offset_y;
 
             draw_rectangle(card_x, card_y, card_w, card_h, palette.surface_bright);
             draw_rectangle_lines(card_x, card_y, card_w, card_h, 2.0, palette.accent);
 
-            // Header Row: Big WPM, Accuracy, and Personal Best
+            // Header Row: Big WPM, Accuracy, Personal Best, Raw WPM
             let wpm_val = format!("{:.0}", self.wpm());
             let acc_val = format!("{:.0}%", self.accuracy());
             let pb_val = format!("{:.0}", self.stats.get_pb(self.duration));
+            let raw_val = format!("{:.0}", self.raw_wpm());
 
-            // Left: WPM
-            draw_text("wpm", card_x + 50.0, card_y + 40.0, 16.0, palette.subtext);
-            draw_text(&wpm_val, card_x + 50.0, card_y + 92.0, 52.0, palette.warning);
+            // 1. WPM
+            draw_text("wpm", card_x + 40.0, card_y + 36.0, 15.0, palette.subtext);
+            draw_text(&wpm_val, card_x + 40.0, card_y + 82.0, 48.0, palette.warning);
 
-            // Center: Accuracy
-            draw_text("acc", card_x + 210.0, card_y + 40.0, 16.0, palette.subtext);
-            draw_text(&acc_val, card_x + 210.0, card_y + 92.0, 52.0, palette.success);
+            // 2. Accuracy
+            draw_text("acc", card_x + 180.0, card_y + 36.0, 15.0, palette.subtext);
+            draw_text(&acc_val, card_x + 180.0, card_y + 82.0, 48.0, palette.success);
 
-            // Right: Personal Best
-            draw_text("best", card_x + 370.0, card_y + 40.0, 16.0, palette.subtext);
-            draw_text(&pb_val, card_x + 370.0, card_y + 92.0, 52.0, palette.peach);
+            // 3. Personal Best
+            draw_text("best", card_x + 320.0, card_y + 36.0, 15.0, palette.subtext);
+            draw_text(&pb_val, card_x + 320.0, card_y + 82.0, 48.0, palette.peach);
+
+            // 4. Raw WPM
+            draw_text("raw", card_x + 460.0, card_y + 36.0, 15.0, palette.subtext);
+            draw_text(&raw_val, card_x + 460.0, card_y + 82.0, 48.0, palette.primary);
 
             if self.is_new_pb {
                 let badge = "★ NEW PERSONAL BEST! ★";
-                let b_dims = measure_text(badge, None, 15, 1.0);
-                draw_text(badge, card_x + (card_w - b_dims.width) * 0.5, card_y + 24.0, 15.0, palette.warning);
+                let b_dims = measure_text(badge, None, 14, 1.0);
+                draw_text(badge, card_x + (card_w - b_dims.width) * 0.5, card_y + 20.0, 14.0, palette.warning);
             }
 
-            // Detailed stats row below
-            let raw_str = format!("raw: {:.0}", self.raw_wpm());
-            let time_str = format!("time: {:.0}s", self.duration);
-            let combo_str = format!("streak: {}x", self.max_combo);
+            // --- Procedural WPM Sparkline Graph ---
+            let graph_x = card_x + 40.0;
+            let graph_y = card_y + 104.0;
+            let graph_w = card_w - 80.0;
+            let graph_h = 80.0;
+
+            draw_rectangle(
+                graph_x,
+                graph_y,
+                graph_w,
+                graph_h,
+                Color::new(palette.bg.r, palette.bg.g, palette.bg.b, 0.45),
+            );
+            draw_rectangle_lines(graph_x, graph_y, graph_w, graph_h, 1.0, palette.border);
+
+            if self.wpm_history.len() >= 2 {
+                let max_w = self.wpm_history.iter().copied().fold(10.0_f32, f32::max);
+                let min_w = self.wpm_history.iter().copied().fold(max_w, f32::min);
+                let range = (max_w - min_w).max(10.0);
+
+                let pad_y = 12.0;
+                let pad_x = 14.0;
+                let usable_w = graph_w - pad_x * 2.0;
+                let usable_h = graph_h - pad_y * 2.0;
+
+                let max_lbl = format!("{:.0} wpm", max_w);
+                draw_text(&max_lbl, graph_x + 8.0, graph_y + 14.0, 11.0, palette.muted);
+                let min_lbl = format!("{:.0} wpm", min_w);
+                draw_text(&min_lbl, graph_x + 8.0, graph_y + graph_h - 4.0, 11.0, palette.muted);
+
+                let step_x = usable_w / (self.wpm_history.len() - 1) as f32;
+                let mut prev_pt: Option<(f32, f32)> = None;
+
+                for (idx, &val) in self.wpm_history.iter().enumerate() {
+                    let px = graph_x + pad_x + idx as f32 * step_x;
+                    let norm = ((val - min_w) / range).clamp(0.0, 1.0);
+                    let py = graph_y + graph_h - pad_y - (norm * usable_h);
+
+                    if let Some((prev_x, prev_y)) = prev_pt {
+                        draw_line(prev_x, prev_y, px, py, 2.5, palette.accent);
+                    }
+                    draw_circle(px, py, 2.2, palette.primary);
+                    prev_pt = Some((px, py));
+                }
+            } else if let Some(&only_wpm) = self.wpm_history.first() {
+                let py = graph_y + graph_h * 0.5;
+                draw_line(graph_x + 10.0, py, graph_x + graph_w - 10.0, py, 2.0, palette.accent);
+                draw_circle(graph_x + graph_w * 0.5, py, 3.0, palette.primary);
+                let lbl = format!("{:.0} wpm", only_wpm);
+                draw_text(&lbl, graph_x + 8.0, graph_y + 14.0, 11.0, palette.muted);
+            }
+
+            // --- Stats & Missed Keys Row ---
             let chars_str = format!(
                 "characters: {}/{}/{}/{}",
                 self.correct_chars, self.incorrect_chars, self.extra_chars, self.missed_chars
             );
-            let mode_str = if self.punctuation_mode { "mode: symbols" } else { "mode: standard" };
+            let combo_str = format!("streak: {}x", self.max_combo);
+            let time_str = format!("time: {:.0}s", self.duration);
 
-            draw_text(&raw_str, card_x + 50.0, card_y + 140.0, 18.0, palette.primary);
-            draw_text(&time_str, card_x + 210.0, card_y + 140.0, 18.0, palette.text);
-            draw_text(&combo_str, card_x + 370.0, card_y + 140.0, 18.0, palette.peach);
-            draw_text(&chars_str, card_x + 50.0, card_y + 175.0, 18.0, palette.subtext);
-            draw_text(mode_str, card_x + 370.0, card_y + 175.0, 18.0, palette.muted);
+            draw_text(&chars_str, card_x + 40.0, card_y + 212.0, 16.0, palette.subtext);
+            draw_text(&combo_str, card_x + 280.0, card_y + 212.0, 16.0, palette.peach);
+            draw_text(&time_str, card_x + 430.0, card_y + 212.0, 16.0, palette.text);
 
-            // Rematch pills
-            let pill_w = 64.0;
-            let spacing = 12.0;
-            let total_w = 3.0 * pill_w + 2.0 * spacing;
-            let start_x = card_x + (card_w - total_w) * 0.5;
-            let btn_y = card_y + card_h - 70.0;
+            let top_typos = self.top_typos();
+            if !top_typos.is_empty() {
+                let typo_list = top_typos
+                    .iter()
+                    .map(|(c, count)| format!("[{}] {}x", c, count))
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let weak_str = format!("weak spots: {}", typo_list);
+                draw_text(&weak_str, card_x + 40.0, card_y + 242.0, 15.0, palette.danger);
+            } else {
+                let perf_str = "flawless run (100% accuracy)!";
+                draw_text(perf_str, card_x + 40.0, card_y + 242.0, 15.0, palette.success);
+            }
+
+            // --- Rematch duration pills & Practice Weak Keys button ---
+            let pill_w = 60.0;
+            let spacing = 10.0;
+            let has_weak_keys = !top_typos.is_empty();
+            let weak_btn_w = if has_weak_keys { 180.0 } else { 0.0 };
+            let total_pills_w = 3.0 * pill_w + 2.0 * spacing + if has_weak_keys { spacing + weak_btn_w } else { 0.0 };
+            let start_x = card_x + (card_w - total_pills_w) * 0.5;
+            let btn_y = card_y + card_h - 90.0;
 
             for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
                 let bx = start_x + (idx as f32 * (pill_w + spacing));
@@ -461,9 +628,18 @@ impl SpeedSprint {
                 }
             }
 
-            let restart_hint = "Click a duration above or press [Ctrl+R] to play again";
+            if has_weak_keys {
+                let wbx = start_x + (3.0 * (pill_w + spacing));
+                let wlabel = "🎯 Practice Weak Keys";
+                draw_rectangle(wbx, btn_y, weak_btn_w, 28.0, palette.surface_bright);
+                draw_rectangle_lines(wbx, btn_y, weak_btn_w, 28.0, 1.5, palette.warning);
+                let wl_dims = measure_text(wlabel, None, 13, 1.0);
+                draw_text(wlabel, wbx + (weak_btn_w - wl_dims.width) * 0.5, btn_y + 19.0, 13.0, palette.warning);
+            }
+
+            let restart_hint = "Press [Tab] or [Enter] to restart  |  [Ctrl+M] Practice Weak Keys  |  [Ctrl+R] Reset";
             let r_dims = measure_text(restart_hint, None, 13, 1.0);
-            draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 16.0, 13.0, palette.muted);
+            draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 18.0, 13.0, palette.muted);
             return;
         }
 

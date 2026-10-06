@@ -67,8 +67,18 @@ async fn main() {
             current_mode = GameMode::SpeedSprint;
         }
 
-        // Switch Sound Profile via Tab
-        if is_key_pressed(KeyCode::Tab) {
+        // If on Results Card, Tab or Enter restarts the game!
+        let is_on_results = (current_mode == GameMode::SpeedSprint && speed_sprint.is_finished)
+            || (current_mode == GameMode::StressShredder && stress_shredder.is_finished);
+
+        if is_on_results && (is_key_pressed(KeyCode::Tab) || is_key_pressed(KeyCode::Enter)) {
+            match current_mode {
+                GameMode::SpeedSprint => speed_sprint.reset(),
+                GameMode::StressShredder => stress_shredder.reset(),
+                _ => {}
+            }
+            particles.spawn_floating_text("RESTARTED", screen_w * 0.5, screen_h * 0.5, palette.accent, 22.0);
+        } else if is_key_pressed(KeyCode::Tab) {
             sound.current_switch = sound.current_switch.next();
             sound.play_keystroke();
             particles.spawn_floating_text(
@@ -139,6 +149,18 @@ async fn main() {
                 screen_w * 0.5,
                 180.0,
                 palette.accent,
+                18.0,
+            );
+        }
+
+        // Practice Weak Keys via Ctrl+M
+        if is_ctrl && is_key_pressed(KeyCode::M) && current_mode == GameMode::SpeedSprint {
+            speed_sprint.practice_weak_keys();
+            particles.spawn_floating_text(
+                "WEAK KEYS TARGETED",
+                screen_w * 0.5,
+                180.0,
+                palette.warning,
                 18.0,
             );
         }
