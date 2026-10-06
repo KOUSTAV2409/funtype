@@ -1,450 +1,584 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="catppuccin">
+<html lang="en" class="dark scroll-smooth">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FunType ⚡ Instant-Launch Desktop Typing Game & Stress Burster</title>
-  
-  <meta name="description" content="Instant-launch, hardware-accelerated typing game & stress-burster for developers. Crafted in Rust for Unix systems with procedural ASMR mechanical audio and particle explosions.">
-  <meta name="keywords" content="typing game, developer tools, rust, mechanical keyboard sound, monkeytype alternative, stress relief, catppuccin, hyprland, linux, macos">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>FunType — Native Desktop Typing Break for Developers</title>
+
+  <meta name="description" content="Instant-launch, hardware-accelerated typing tool in Rust. Summoned anywhere via Super+Y to vaporize work stress, calibrate cadence, or test speed in <25ms.">
+  <meta name="keywords" content="typing game, rust, developer tool, hyprland, mechanical keyboard, monkeytype, catppuccin, linux, macos, deck">
   <meta name="author" content="KOUSTAV2409">
 
-  <!-- Open Graph / Facebook -->
+  <!-- Open Graph -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://funtype.vercel.app/">
-  <meta property="og:title" content="FunType ⚡ Instant-Launch Desktop Typing Game">
-  <meta property="og:description" content="Bust stress. Type faster. Float inside your desktop workflow with hardware-accelerated Rust speed and ASMR mechanical keyboard clicks.">
-  <meta property="og:image" content="/favicon.svg">
+  <meta property="og:title" content="FunType — Native Desktop Typing Break for Developers">
+  <meta property="og:description" content="Instant-launch, hardware-accelerated typing game in Rust. Under 25ms launch latency.">
+  <meta property="og:image" content="favicon.svg">
 
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="FunType ⚡ Instant-Launch Desktop Typing Game">
-  <meta name="twitter:description" content="Hardware-accelerated Rust typing game for developers. Instant launch (<25ms) via SUPER + Y.">
-  <meta name="twitter:image" content="/favicon.svg">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-
-  <!-- Fonts -->
+  <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="/styles.css">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
+          },
+          colors: {
+            background: 'var(--background)',
+            foreground: 'var(--foreground)',
+            card: {
+              DEFAULT: 'var(--card)',
+              foreground: 'var(--card-foreground)',
+            },
+            popover: {
+              DEFAULT: 'var(--popover)',
+              foreground: 'var(--popover-foreground)',
+            },
+            primary: {
+              DEFAULT: 'var(--primary)',
+              foreground: 'var(--primary-foreground)',
+            },
+            secondary: {
+              DEFAULT: 'var(--secondary)',
+              foreground: 'var(--secondary-foreground)',
+            },
+            muted: {
+              DEFAULT: 'var(--muted)',
+              foreground: 'var(--muted-foreground)',
+            },
+            accent: {
+              DEFAULT: 'var(--accent)',
+              foreground: 'var(--accent-foreground)',
+            },
+            destructive: {
+              DEFAULT: 'var(--destructive)',
+              foreground: 'var(--destructive-foreground)',
+            },
+            border: 'var(--border)',
+            input: 'var(--input)',
+            ring: 'var(--ring)',
+            chart: {
+              1: 'var(--chart-1)',
+              2: 'var(--chart-2)',
+              3: 'var(--chart-3)',
+              4: 'var(--chart-4)',
+              5: 'var(--chart-5)',
+            },
+            sidebar: {
+              DEFAULT: 'var(--sidebar)',
+              foreground: 'var(--sidebar-foreground)',
+              primary: 'var(--sidebar-primary)',
+              'primary-foreground': 'var(--sidebar-primary-foreground)',
+              accent: 'var(--sidebar-accent)',
+              'accent-foreground': 'var(--sidebar-accent-foreground)',
+              border: 'var(--sidebar-border)',
+              ring: 'var(--sidebar-ring)',
+            }
+          },
+          keyframes: {
+            zenOrb: {
+              '0%, 100%': { transform: 'scale(0.9)', borderColor: 'var(--border)' },
+              '33.3%, 50%': { transform: 'scale(1.28)', borderColor: 'var(--primary)' },
+              '83.3%': { transform: 'scale(0.9)', borderColor: 'var(--border)' },
+            }
+          },
+          animation: {
+            'zen-orb': 'zenOrb 12s infinite ease-in-out',
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Design Tokens -->
+  <style>
+    :root {
+      --background: oklch(1 0 0);
+      --foreground: oklch(0.141 0.005 285.823);
+      --card: oklch(1 0 0);
+      --card-foreground: oklch(0.141 0.005 285.823);
+      --popover: oklch(1 0 0);
+      --popover-foreground: oklch(0.141 0.005 285.823);
+      --primary: oklch(0.488 0.243 264.376);
+      --primary-foreground: oklch(0.97 0.014 254.604);
+      --secondary: oklch(0.967 0.001 286.375);
+      --secondary-foreground: oklch(0.21 0.006 285.885);
+      --muted: oklch(0.967 0.001 286.375);
+      --muted-foreground: oklch(0.552 0.016 285.938);
+      --accent: oklch(0.967 0.001 286.375);
+      --accent-foreground: oklch(0.21 0.006 285.885);
+      --destructive: oklch(0.577 0.245 27.325);
+      --border: oklch(0.92 0.004 286.32);
+      --input: oklch(0.92 0.004 286.32);
+      --ring: oklch(0.705 0.015 286.067);
+      --chart-1: oklch(0.809 0.105 251.813);
+      --chart-2: oklch(0.623 0.214 259.815);
+      --chart-3: oklch(0.546 0.245 262.881);
+      --chart-4: oklch(0.488 0.243 264.376);
+      --chart-5: oklch(0.424 0.199 265.638);
+      --radius: 0;
+      --sidebar: oklch(0.985 0 0);
+      --sidebar-foreground: oklch(0.141 0.005 285.823);
+      --sidebar-primary: oklch(0.546 0.245 262.881);
+      --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+      --sidebar-accent: oklch(0.967 0.001 286.375);
+      --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+      --sidebar-border: oklch(0.92 0.004 286.32);
+      --sidebar-ring: oklch(0.705 0.015 286.067);
+    }
+
+    .dark {
+      --background: oklch(0.141 0.005 285.823);
+      --foreground: oklch(0.985 0 0);
+      --card: oklch(0.21 0.006 285.885);
+      --card-foreground: oklch(0.985 0 0);
+      --popover: oklch(0.21 0.006 285.885);
+      --popover-foreground: oklch(0.985 0 0);
+      --primary: oklch(0.424 0.199 265.638);
+      --primary-foreground: oklch(0.97 0.014 254.604);
+      --secondary: oklch(0.274 0.006 286.033);
+      --secondary-foreground: oklch(0.985 0 0);
+      --muted: oklch(0.274 0.006 286.033);
+      --muted-foreground: oklch(0.705 0.015 286.067);
+      --accent: oklch(0.274 0.006 286.033);
+      --accent-foreground: oklch(0.985 0 0);
+      --destructive: oklch(0.704 0.191 22.216);
+      --border: oklch(1 0 0 / 10%);
+      --input: oklch(1 0 0 / 15%);
+      --ring: oklch(0.552 0.016 285.938);
+      --chart-1: oklch(0.809 0.105 251.813);
+      --chart-2: oklch(0.623 0.214 259.815);
+      --chart-3: oklch(0.546 0.245 262.881);
+      --chart-4: oklch(0.488 0.243 264.376);
+      --chart-5: oklch(0.424 0.199 265.638);
+      --sidebar: oklch(0.21 0.006 285.885);
+      --sidebar-foreground: oklch(0.985 0 0);
+      --sidebar-primary: oklch(0.623 0.214 259.815);
+      --sidebar-primary-foreground: oklch(0.97 0.014 254.604);
+      --sidebar-accent: oklch(0.274 0.006 286.033);
+      --sidebar-accent-foreground: oklch(0.985 0 0);
+      --sidebar-border: oklch(1 0 0 / 10%);
+      --sidebar-ring: oklch(0.552 0.016 285.938);
+    }
+
+    /* Complete scrollbar elimination */
+    *, *::before, *::after {
+      scrollbar-width: none !important;
+      -ms-overflow-style: none !important;
+    }
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    /* Interactive Typer Feedback Tokens */
+    .char-correct {
+      color: var(--primary) !important;
+      font-weight: 500;
+    }
+    .char-wrong {
+      color: var(--destructive) !important;
+      background-color: oklch(0.704 0.191 22.216 / 20%) !important;
+      border-radius: 2px;
+    }
+    .char-current {
+      color: var(--foreground) !important;
+      border-bottom: 2px solid var(--primary);
+      animation: blinkCaret 0.9s infinite ease-in-out;
+    }
+    @keyframes blinkCaret {
+      0%, 100% { border-bottom-color: var(--primary); }
+      50% { border-bottom-color: transparent; }
+    }
+  </style>
 </head>
-<body>
-  <div class="grid-bg"></div>
+<body class="bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-white min-h-screen relative overflow-x-hidden">
 
-  <!-- Navigation -->
-  <header class="navbar">
-    <div class="container nav-inner">
-      <div class="logo-group">
-        <a href="#" class="logo-badge">
-          <img src="/favicon.svg" alt="FunType Logo" class="logo-icon">
-          <span>FunType</span>
-        </a>
-        <span class="version-pill">v1.0.0</span>
-      </div>
+  <!-- Ambient Backdrop Glow -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-primary/[0.06] blur-[150px] pointer-events-none rounded-full -z-10"></div>
+  <div class="absolute inset-0 h-[800px] pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_85%)] -z-10"></div>
 
-      <ul class="nav-links">
-        <li><a href="#features" class="nav-link">Features</a></li>
-        <li><a href="#simulator" class="nav-link">Live Demo</a></li>
-        <li><a href="#modes" class="nav-link">Game Modes</a></li>
-        <li><a href="#audio" class="nav-link">ASMR Audio</a></li>
-        <li><a href="#install" class="nav-link">Install</a></li>
-        <li><a href="#shortcuts" class="nav-link">Shortcuts</a></li>
-      </ul>
+  <!-- Small Centered Floating Navbar -->
+  <header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(92%,680px)]">
+    <div class="backdrop-blur-xl bg-card/85 border border-border shadow-[0_8px_30px_rgb(0,0,0,0.35)] rounded-full px-3 sm:px-4 py-1.5 flex items-center justify-between transition-all">
+      <!-- Brand on Left -->
+      <a href="#" class="inline-flex items-center gap-2 font-medium text-xs sm:text-sm tracking-tight text-foreground hover:opacity-90 transition-opacity pl-1">
+        <img src="favicon.svg" alt="FunType Icon" class="w-4 h-4 rounded">
+        <span>FunType</span>
+        <span class="text-[10px] font-mono text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-full border border-border hidden sm:inline">v1.0</span>
+      </a>
 
-      <div class="nav-actions">
-        <button id="theme-toggle-btn" class="theme-btn" title="Cycle Theme">
-          🎨 Theme: CATPPUCCIN
-        </button>
-        <a href="https://github.com/KOUSTAV2409/funtype" target="_blank" rel="noopener noreferrer" class="github-btn">
-          <svg height="16" width="16" viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
-          </svg>
-          <span>Star on GitHub</span>
-        </a>
-      </div>
+      <!-- Center Links -->
+      <nav class="flex items-center gap-1 sm:gap-1.5 text-xs font-medium text-muted-foreground">
+        <a href="#simulator" class="px-2.5 py-1 rounded-full hover:text-foreground hover:bg-secondary/70 transition-colors">Simulator</a>
+        <a href="#modes" class="px-2.5 py-1 rounded-full hover:text-foreground hover:bg-secondary/70 transition-colors">Modes</a>
+        <a href="#architecture" class="px-2.5 py-1 rounded-full hover:text-foreground hover:bg-secondary/70 transition-colors hidden sm:inline">Specs</a>
+        <a href="#setup" class="px-2.5 py-1 rounded-full hover:text-foreground hover:bg-secondary/70 transition-colors">Setup</a>
+      </nav>
+
+      <!-- Right Action CTA -->
+      <a href="https://github.com/KOUSTAV2409/funtype" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-medium text-foreground bg-secondary hover:bg-accent border border-border rounded-full transition-all shadow-sm">
+        <svg height="13" width="13" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+        </svg>
+        <span class="hidden sm:inline">Star</span>
+      </a>
     </div>
   </header>
 
   <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="container">
-      <div class="hero-pill">
-        ⚡ ULTRA-LIGHT • HARDWARE ACCELERATED • ZERO BLOAT
-      </div>
-      <h1 class="hero-title">
-        Bust Stress. Type Faster.<br>
-        <span class="gradient-text">Float In Your Workflow.</span>
-      </h1>
-      <p class="hero-description">
-        An instant-launch, GPU-accelerated typing game and therapeutic stress-burster for developers and computer workers. Summoned in milliseconds via a global shortcut over any window.
+  <section class="pt-24 sm:pt-28 pb-12 max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary border border-border text-xs font-mono text-muted-foreground mb-6">
+      <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+      <span>Hardware-Accelerated Unix Tool</span>
+    </div>
+
+    <!-- Title -->
+    <h1 class="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.08] mb-8 max-w-4xl">
+      Execute your typing breaks with native speed and zero friction
+    </h1>
+
+    <!-- Split Content Row -->
+    <div class="grid grid-cols-1 md:grid-cols-[1.3fr_0.7fr] gap-8 items-end pb-8 border-b border-border">
+      <p class="text-base sm:text-lg text-muted-foreground leading-relaxed">
+        FunType is developer infrastructure for micro-breaks. Summoned in &lt;25ms via <kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-xs font-mono text-foreground">SUPER + Y</kbd> over any IDE or browser to vaporize work stress, calibrate breathing cadence, or benchmark WPM with procedural mechanical switch audio.
       </p>
 
-      <!-- Install Snippet Box -->
-      <div class="install-box" id="install">
-        <div class="install-tabs">
-          <button class="install-tab active" data-target="curl">Quick Install (One-line)</button>
-          <button class="install-tab" data-target="clone">Git Clone & Build</button>
-          <button class="install-tab" data-target="hyprland">Arch / Omarchy Hyprland</button>
+      <div class="flex flex-col sm:flex-row gap-3 md:justify-end items-stretch sm:items-center">
+        <a href="#simulator" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs tracking-wide transition-all shadow-lg shadow-primary/20 active:scale-95">
+          <span>Try Simulator</span>
+          <span>&rarr;</span>
+        </a>
+        <a href="#setup" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-secondary hover:bg-accent border border-border text-foreground font-medium text-xs transition-all">
+          <span>Desktop Config</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- One-line Install Box -->
+    <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-card border border-border hover:border-primary/40 rounded-xl p-2.5 pl-4 shadow-2xl transition-all gap-3">
+      <div class="flex items-center gap-2.5 font-mono text-xs sm:text-sm text-foreground min-w-0 overflow-hidden">
+        <span class="text-primary select-none shrink-0">$</span>
+        <code id="install-cmd-text" class="truncate select-all text-muted-foreground">curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash</code>
+      </div>
+      <button class="px-3.5 py-1.5 bg-secondary hover:bg-accent border border-border rounded text-xs font-mono font-medium text-foreground transition-all flex items-center justify-center gap-1.5 shrink-0 active:scale-95" id="install-copy-btn" aria-label="Copy install command">
+        <span>Copy</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Interactive VM Showcase Section -->
+  <section class="pb-20 max-w-6xl mx-auto px-4 sm:px-6 relative" id="simulator">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/[0.04] blur-3xl pointer-events-none rounded-2xl -z-10"></div>
+
+    <div class="bg-card border border-border rounded-xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden relative">
+      
+      <!-- Window Titlebar -->
+      <div class="flex items-center justify-between px-4 py-3 bg-secondary/50 border-b border-border flex-wrap gap-3">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
+          <span class="w-2.5 h-2.5 rounded-full bg-[#27c93f]"></span>
+          <span class="font-mono text-xs text-muted-foreground ml-1.5 hidden sm:inline">funtype — native sandbox (1040 × 660)</span>
         </div>
-        <div class="install-body">
-          <div class="install-command">
-            <span class="prompt">$</span>
-            <code id="install-cmd-text">curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash</code>
-          </div>
-          <button class="copy-btn" id="install-copy-btn">
-            <span>Copy</span>
-          </button>
+
+        <!-- Mode Pills -->
+        <div class="flex bg-background/60 p-1 rounded-lg border border-border gap-1">
+          <button class="mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all bg-primary text-primary-foreground shadow-sm" data-mode="shredder">[1] Shredder</button>
+          <button class="mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground" data-mode="zen">[2] Zen Flow</button>
+          <button class="mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground" data-mode="sprint">[3] Sprint</button>
+        </div>
+
+        <!-- Audio Profile Controls -->
+        <div class="flex items-center gap-2">
+          <button id="sound-toggle-btn" class="bg-secondary hover:bg-accent border border-border text-xs font-mono px-2.5 py-1 rounded text-foreground transition-colors">Audio: ON</button>
+          <select id="sound-profile-select" class="bg-secondary border border-border text-xs font-mono px-2 py-1 rounded text-foreground outline-none" aria-label="Audio switch profile">
+            <option value="holypanda">Holy Panda (Thock)</option>
+            <option value="blue">Cherry Blue (Click)</option>
+            <option value="creamy">Creamy Linear</option>
+            <option value="bubble">Bubble Pop</option>
+            <option value="silent">Silent</option>
+          </select>
         </div>
       </div>
 
-      <!-- Quick Stats -->
-      <div class="hero-metrics">
-        <div class="metric-item">
-          <span class="metric-value">&lt; 25ms</span>
-          <span class="metric-label">Launch Latency</span>
+      <!-- Window Stage -->
+      <div class="min-h-[360px] bg-background/95 relative flex flex-col justify-between p-6 cursor-text" id="simulator-stage">
+        
+        <!-- View 1: Shredder Mode -->
+        <div class="relative w-full h-[320px] block cursor-pointer" id="shredder-view">
+          <div class="absolute top-2 left-2 right-2 flex justify-between items-center pointer-events-none z-10">
+            <div class="flex items-center gap-2 bg-card/90 backdrop-blur-md px-3 py-1 rounded-full border border-border">
+              <span class="font-mono text-[11px] font-semibold text-primary">STRESS:</span>
+              <div class="w-28 h-1.5 bg-secondary rounded-full overflow-hidden">
+                <div class="h-full bg-primary transition-all duration-300" id="stress-fill" style="width: 85%;"></div>
+              </div>
+              <span id="stress-val" class="font-mono text-[11px] text-muted-foreground">85%</span>
+            </div>
+            <div class="font-mono text-xs text-muted-foreground bg-card/90 backdrop-blur-md px-3 py-1 rounded-full border border-border">
+              <span>Score: <b id="shredder-score-val" class="text-foreground">0</b></span>
+            </div>
+          </div>
+
+          <canvas id="shredder-canvas" class="w-full h-full block cursor-pointer"></canvas>
+
+          <div class="absolute bottom-2 left-1/2 -translate-x-1/2 w-full max-w-sm px-4 z-10">
+            <input type="text" id="shredder-input" class="w-full bg-card/90 backdrop-blur-md border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-lg px-4 py-2 text-foreground font-mono text-sm text-center outline-none shadow-xl transition-all" placeholder="Type falling stressor..." autocomplete="off" spellcheck="false">
+          </div>
         </div>
-        <div class="metric-item">
-          <span class="metric-value">1.6 MB</span>
-          <span class="metric-label">Binary Footprint</span>
+
+        <!-- View 2: Zen Flow Mode -->
+        <div class="hidden flex-col items-center justify-center h-[320px] text-center relative cursor-text" id="zen-view">
+          <input type="text" id="zen-typer" class="absolute inset-0 opacity-0 cursor-text" autocomplete="off" spellcheck="false">
+          <div class="w-28 h-28 rounded-full border border-border bg-radial from-primary/10 to-transparent flex items-center justify-center mb-6 animate-zen-orb pointer-events-none">
+            <span class="font-mono text-xs font-semibold tracking-widest text-primary">BREATHE</span>
+          </div>
+          <div class="font-mono text-base text-muted-foreground max-w-xl leading-relaxed tracking-wide pointer-events-none" id="zen-text-display">
+            <!-- Populated dynamically -->
+          </div>
+          <span class="text-xs font-mono text-muted-foreground mt-4 pointer-events-none">Click anywhere inside to type cadence</span>
         </div>
-        <div class="metric-item">
-          <span class="metric-value">0% Electron</span>
-          <span class="metric-label">100% Native Rust</span>
+
+        <!-- View 3: Sprint Mode -->
+        <div class="hidden flex-col justify-between h-[320px] relative cursor-text" id="sprint-view">
+          <input type="text" id="sprint-typer" class="absolute inset-0 opacity-0 cursor-text" autocomplete="off" spellcheck="false">
+          <div class="flex items-center justify-between pb-3 border-b border-border pointer-events-none">
+            <div class="flex gap-6">
+              <div class="flex flex-col">
+                <span class="font-mono text-xl font-semibold text-foreground" id="sprint-wpm-val">0</span>
+                <span class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">WPM</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="font-mono text-xl font-semibold text-foreground" id="sprint-acc-val">100%</span>
+                <span class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Accuracy</span>
+              </div>
+            </div>
+            <div class="font-mono text-sm font-semibold text-primary bg-primary/10 border border-border px-2.5 py-1 rounded" id="sprint-timer-val">30s</div>
+          </div>
+
+          <div class="font-mono text-base text-muted-foreground leading-loose select-none py-6 pointer-events-none" id="sprint-text-display">
+            <!-- Populated dynamically -->
+          </div>
+
+          <div class="text-xs font-mono text-muted-foreground text-center pointer-events-none">Click anywhere to start typing the countdown sprint</div>
         </div>
-        <div class="metric-item">
-          <span class="metric-value">SUPER + Y</span>
-          <span class="metric-label">Global Summon</span>
+
+      </div>
+
+      <!-- Window Statusbar -->
+      <div class="flex items-center justify-between px-4 py-2.5 bg-secondary/50 border-t border-border font-mono text-xs text-muted-foreground flex-wrap gap-2">
+        <div class="flex items-center gap-3">
+          <span><kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] text-foreground">1</kbd> Shredder</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] text-foreground">2</kbd> Zen</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] text-foreground">3</kbd> Sprint</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] text-foreground">Tab</kbd> Sound</span>
+          <span><kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-[10px] text-foreground">Esc</kbd> Dismiss</span>
+        </div>
+        <button class="hover:text-foreground transition-colors border border-border hover:border-foreground/30 px-2 py-0.5 rounded text-[11px]" id="btn-simulator-restart">↺ Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3-Column Modes Architecture -->
+  <section class="py-16 max-w-6xl mx-auto px-4 sm:px-6" id="modes">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-secondary border border-border text-xs font-mono text-muted-foreground mb-3">
+        <span>Operating Modes</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-2">Three specialized engines for mental recovery</h2>
+      <p class="text-sm text-muted-foreground max-w-xl">Whether you want aggressive catharsis, steady breathing cadence, or targeted speed drills.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <!-- Mode 01 -->
+      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">01</span>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-secondary border border-border text-muted-foreground">Arcade</span>
+          </div>
+          <h3 class="text-lg font-semibold text-foreground tracking-tight mb-2.5">Stress Shredder</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Real engineering blockers descend gracefully (<code class="text-foreground">merge conflict</code>, <code class="text-foreground">prod incident</code>, <code class="text-foreground">segfault</code>). Typing them vaporizes each stressor into clean spark particle explosions and resets your workplace stress gauge to zero.
+          </p>
+        </div>
+        <div class="pt-4 mt-6 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
+          <span>Trigger: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">1</kbd></span>
+          <span>15s / 30s / 60s / Free Fall</span>
+        </div>
+      </div>
+
+      <!-- Mode 02 -->
+      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">02</span>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-secondary border border-border text-muted-foreground">Cadence</span>
+          </div>
+          <h3 class="text-lg font-semibold text-foreground tracking-tight mb-2.5">Zen Flow &amp; Breathing Orb</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            Synchronizes finger cadence with a therapeutic 12-second respiration orb (Box Breathing: 4s Inhale, 2s Hold, 4s Exhale, 2s Rest) paired with philosophical reflections to down-regulate heart rate and mental strain.
+          </p>
+        </div>
+        <div class="pt-4 mt-6 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
+          <span>Trigger: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">2</kbd></span>
+          <span>Zero Error Penalties</span>
+        </div>
+      </div>
+
+      <!-- Mode 03 -->
+      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">03</span>
+            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-secondary border border-border text-muted-foreground">Precision</span>
+          </div>
+          <h3 class="text-lg font-semibold text-foreground tracking-tight mb-2.5">Speed Sprint &amp; Weak Keys</h3>
+          <p class="text-sm text-muted-foreground leading-relaxed">
+            High-velocity sprints with real-time WPM sparklines and automated error detection. Press <kbd class="px-1.5 py-0.5 rounded bg-secondary text-xs text-foreground font-mono">Ctrl + M</kbd> to automatically generate targeted training drills isolating your slowest finger transitions.
+          </p>
+        </div>
+        <div class="pt-4 mt-6 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
+          <span>Trigger: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">3</kbd></span>
+          <span>Drills: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">Ctrl+M</kbd></span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Simulator Section -->
-  <section class="simulator-section" id="simulator">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">Interactive Experience</span>
-        <h2 class="section-title">Try FunType in Your Browser</h2>
-        <p class="section-desc">
-          Feel the mechanical ASMR switch feedback, explosive particle bursts, and mindful cadence below.
-        </p>
+  <!-- Architecture Comparison Specs -->
+  <section class="py-16 max-w-6xl mx-auto px-4 sm:px-6 border-t border-border" id="architecture">
+    <div class="mb-10">
+      <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-secondary border border-border text-xs font-mono text-muted-foreground mb-3">
+        <span>Technical Specs</span>
+      </div>
+      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-2">Why native Rust infrastructure matters</h2>
+      <p class="text-sm text-muted-foreground max-w-xl">Why we engineered FunType as a 1.6MB standalone Unix binary instead of another Electron browser wrapper.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- FunType Native Column -->
+      <div class="bg-gradient-to-b from-primary/10 to-card border border-border rounded-xl p-6 shadow-xl">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-border">
+          <div>
+            <h3 class="text-base font-semibold text-foreground">FunType (Rust Native)</h3>
+            <span class="text-xs text-muted-foreground">Directly on Wayland / X11 / Cocoa</span>
+          </div>
+          <span class="font-mono text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-border font-medium">OPTIMAL</span>
+        </div>
+
+        <div class="divide-y divide-border text-sm">
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Startup Latency</span>
+            <span class="font-mono text-primary font-semibold">&lt; 25 ms</span>
+          </div>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Binary Size</span>
+            <span class="font-mono text-foreground font-medium">1.6 MB</span>
+          </div>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Idle RAM Consumption</span>
+            <span class="font-mono text-foreground font-medium">0 MB (Exits on Esc)</span>
+          </div>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Audio Synthesis</span>
+            <span class="font-mono text-foreground font-medium">0 KB (Procedural PCM in memory)</span>
+          </div>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Window Manager Bindings</span>
+            <span class="font-mono text-foreground font-medium">Native Hyprland / Sway / i3 / macOS</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Simulated Floating App Window -->
-      <div class="window-container">
-        <div class="window-header">
-          <div class="window-controls">
-            <span class="window-dot dot-red"></span>
-            <span class="window-dot dot-yellow"></span>
-            <span class="window-dot dot-green"></span>
-            <span style="font-family: var(--font-mono); font-size: 0.8rem; margin-left: 0.5rem; font-weight: 600; color: var(--text-subtext);">funtype — 1040×660</span>
+      <!-- Heavy Web Wrapper Column -->
+      <div class="bg-card border border-border rounded-xl p-6">
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-border">
+          <div>
+            <h3 class="text-base font-semibold text-muted-foreground">Traditional Web / Electron Tests</h3>
+            <span class="text-xs text-muted-foreground">Browser chromium instances</span>
           </div>
-
-          <div class="app-mode-selector">
-            <button class="mode-tab-btn active" data-mode="shredder">💥 1: Stress Shredder</button>
-            <button class="mode-tab-btn" data-mode="zen">🌿 2: Zen Flow</button>
-            <button class="mode-tab-btn" data-mode="sprint">🚀 3: Speed Sprint</button>
-          </div>
-
-          <div class="window-tools">
-            <button id="sound-toggle-btn" class="sound-toggle-btn">🔊 Sound: ON</button>
-            <select id="sound-profile-select" class="sound-profile-select" aria-label="Select switch audio profile">
-              <option value="holypanda">Holy Panda (Thock)</option>
-              <option value="blue">Cherry Blue (Clicky)</option>
-              <option value="creamy">Creamy Linear (Muted)</option>
-              <option value="bubble">Bubble Pop (Drop)</option>
-              <option value="silent">Silent / Mute</option>
-            </select>
-          </div>
+          <span class="font-mono text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full border border-border">HEAVY</span>
         </div>
 
-        <div class="window-body">
-          <!-- View 1: Stress Shredder Mode -->
-          <div class="shredder-view active" id="shredder-view">
-            <div class="shredder-hud">
-              <div class="stress-meter-container">
-                <span class="stress-meter-label">STRESS:</span>
-                <div class="stress-progress-bar">
-                  <div class="stress-progress-fill" id="stress-fill"></div>
-                </div>
-                <span id="stress-val" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--color-peach);">85%</span>
-              </div>
-              <div class="shredder-stats">
-                <span>Score: <b id="shredder-score-val" style="color: var(--color-mauve);">0</b></span>
-                <span style="color: var(--color-green);">Target: Type falling words!</span>
-              </div>
-            </div>
-
-            <canvas id="shredder-canvas"></canvas>
-
-            <div class="shredder-input-box">
-              <input type="text" id="shredder-input" class="shredder-input-field" placeholder="Type falling stressor and press Enter..." autocomplete="off" spellcheck="false">
-            </div>
+        <div class="divide-y divide-border text-sm">
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Startup Latency</span>
+            <span class="font-mono text-destructive font-medium">1,200 – 3,000 ms</span>
           </div>
-
-          <!-- View 2: Zen Flow Mode -->
-          <div class="zen-view" id="zen-view">
-            <input type="text" id="zen-typer" class="hidden-typer" autofocus>
-            <div class="breathing-orb-container">
-              <div class="breathing-orb">
-                <span class="breathing-label">BREATHE</span>
-              </div>
-            </div>
-            <div class="zen-text-display" id="zen-text-display">
-              <!-- Dynamically populated -->
-            </div>
-            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--color-blue);">
-              ✨ Synchronize your typing with the breathing orb. Click anywhere to type.
-            </div>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Binary Size</span>
+            <span class="font-mono text-muted-foreground font-medium">180 – 350 MB</span>
           </div>
-
-          <!-- View 3: Speed Sprint Mode -->
-          <div class="sprint-view" id="sprint-view">
-            <input type="text" id="sprint-typer" class="hidden-typer">
-            <div class="sprint-hud">
-              <div class="sprint-stat-pills">
-                <div class="sprint-stat">
-                  <span class="sprint-stat-val" id="sprint-wpm-val">0</span>
-                  <span class="sprint-stat-lbl">WPM</span>
-                </div>
-                <div class="sprint-stat">
-                  <span class="sprint-stat-val" id="sprint-acc-val">100%</span>
-                  <span class="sprint-stat-lbl">Accuracy</span>
-                </div>
-              </div>
-              <div class="sprint-timer-badge" id="sprint-timer-val">
-                30s
-              </div>
-            </div>
-
-            <div class="sprint-text-area" id="sprint-text-display">
-              <!-- Dynamically populated -->
-            </div>
-
-            <div style="font-family: var(--font-mono); font-size: 0.8rem; color: var(--text-muted); text-align: center;">
-              ⌨️ Click anywhere and start typing to begin the countdown timer.
-            </div>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Idle RAM Consumption</span>
+            <span class="font-mono text-destructive font-medium">250 – 600 MB</span>
           </div>
-        </div>
-
-        <div class="window-footer">
-          <div class="footer-hotkeys">
-            <span><kbd class="keycap">Esc</kbd> Exit</span>
-            <span><kbd class="keycap">1</kbd> Shredder</span>
-            <span><kbd class="keycap">2</kbd> Zen</span>
-            <span><kbd class="keycap">3</kbd> Sprint</span>
-            <span><kbd class="keycap">Tab</kbd> Sound</span>
-            <span><kbd class="keycap">Ctrl+T</kbd> Timer</span>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Audio Synthesis</span>
+            <span class="font-mono text-muted-foreground font-medium">15 – 45 MB remote assets</span>
           </div>
-          <button class="btn-rematch" id="btn-simulator-restart">↺ Reset / Restart Mode</button>
+          <div class="py-3 flex justify-between items-center">
+            <span class="text-muted-foreground">Window Manager Bindings</span>
+            <span class="font-mono text-muted-foreground font-medium">Manual alt-tabbing</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Features Bento Grid -->
-  <section class="features-section" id="features">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">Engineered For Focus</span>
-        <h2 class="section-title">Designed for Modern Developers</h2>
-        <p class="section-desc">
-          No heavy web wrappers, no performance anxiety, no distraction. Pure tactile joy directly inside your window manager.
-        </p>
+  <!-- Desktop Setup Configuration -->
+  <section class="py-16 max-w-6xl mx-auto px-4 sm:px-6 border-t border-border" id="setup">
+    <div class="mb-8">
+      <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-secondary border border-border text-xs font-mono text-muted-foreground mb-3">
+        <span>Integration</span>
       </div>
-
-      <div class="bento-grid">
-        <div class="bento-card span-4">
-          <span class="pill-tag">SUB-25MS NATIVE</span>
-          <div class="card-icon">🚀</div>
-          <h3 class="card-title">Instant Window Summon</h3>
-          <p class="card-desc">
-            Press <code>SUPER + Y</code> over your IDE, terminal, or browser. FunType opens in sub-25 milliseconds with zero lag or frame drops.
-          </p>
-        </div>
-
-        <div class="bento-card span-4">
-          <span class="pill-tag">THERAPEUTIC ARCADE</span>
-          <div class="card-icon">💥</div>
-          <h3 class="card-title">Stress Shredder</h3>
-          <p class="card-desc">
-            Shred work nightmares like <code>prod incident</code>, <code>merge conflict</code>, and <code>segfault</code> into glowing neon particle fireworks. Watch stress drop to 0%.
-          </p>
-        </div>
-
-        <div class="bento-card span-4">
-          <span class="pill-tag">MINDFUL RESUSPENSION</span>
-          <div class="card-icon">🌿</div>
-          <h3 class="card-title">Zen Flow & Breathing Orb</h3>
-          <p class="card-desc">
-            A 12-second therapeutic respiration rhythm (4s Inhale / 2s Hold / 4s Exhale / 2s Rest) paired with stoic reflections to lower cortisol and eye strain.
-          </p>
-        </div>
-
-        <div class="bento-card span-6">
-          <span class="pill-tag">TACTILE FEEDBACK</span>
-          <div class="card-icon">🎧</div>
-          <h3 class="card-title">Procedural ASMR Audio Engine</h3>
-          <p class="card-desc">
-            Zero external audio assets or network downloads. Synthesizes authentic Holy Panda, Cherry Blue, Creamy Linear, and Bubble Pop sound waves mathematically in memory at 44.1kHz.
-          </p>
-        </div>
-
-        <div class="bento-card span-6">
-          <span class="pill-tag">ACCURACY & DRILLS</span>
-          <div class="card-icon">📊</div>
-          <h3 class="card-title">Weak Keys Targeter & WPM Graph</h3>
-          <p class="card-desc">
-            Procedural WPM sparkline tracking your typing curve, plus automatic detection of error keys with one-keystroke targeted drill generation (<code>Ctrl+M</code>).
-          </p>
-        </div>
-      </div>
+      <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mb-2">Automated window manager configuration</h2>
+      <p class="text-sm text-muted-foreground max-w-xl">The installer automatically configures your floating window rules, or paste them manually below.</p>
     </div>
-  </section>
 
-  <!-- ASMR Switch Showcase -->
-  <section class="audio-section" id="audio">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">Audio Acoustics</span>
-        <h2 class="section-title">5 ASMR Mechanical Profiles</h2>
-        <p class="section-desc">
-          Click on any switch card below to preview the procedurally generated tactile audio.
-        </p>
-      </div>
-
-      <div class="audio-cards">
-        <div class="audio-card active" data-profile="holypanda">
-          <div class="audio-card-icon">🐼</div>
-          <div class="audio-card-name">Holy Panda</div>
-          <div class="audio-card-desc">Resonant low-mid frequency body with crisp tactile snap</div>
-          <div class="audio-play-hint">▶ Click to Test</div>
-        </div>
-
-        <div class="audio-card" data-profile="blue">
-          <div class="audio-card-icon">🟦</div>
-          <div class="audio-card-name">Cherry Blue</div>
-          <div class="audio-card-desc">Crisp, high-frequency click with subtle metallic resonance</div>
-          <div class="audio-play-hint">▶ Click to Test</div>
-        </div>
-
-        <div class="audio-card" data-profile="creamy">
-          <div class="audio-card-icon">🧈</div>
-          <div class="audio-card-name">Creamy Linear</div>
-          <div class="audio-card-desc">Smooth, lubricated linear switch with dampened soft pop</div>
-          <div class="audio-play-hint">▶ Click to Test</div>
-        </div>
-
-        <div class="audio-card" data-profile="bubble">
-          <div class="audio-card-icon">🫧</div>
-          <div class="audio-card-name">Bubble Pop</div>
-          <div class="audio-card-desc">Harmonic water droplet frequency sweep for deep zen</div>
-          <div class="audio-play-hint">▶ Click to Test</div>
-        </div>
-      </div>
+    <div class="flex gap-2 mb-3">
+      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-border transition-colors" data-config="hyprland">Hyprland / Omarchy</button>
+      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors" data-config="i3">i3 / Sway</button>
+      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors" data-config="macos">macOS (skhd)</button>
     </div>
-  </section>
 
-  <!-- Shortcuts Cheatsheet -->
-  <section class="shortcuts-section" id="shortcuts">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-tag">Controls</span>
-        <h2 class="section-title">Keyboard Cheatsheet</h2>
-        <p class="section-desc">
-          Built completely keyboard-driven for seamless tiling window manager integration.
-        </p>
-      </div>
-
-      <div class="shortcuts-table-container">
-        <table class="shortcuts-table">
-          <thead>
-            <tr>
-              <th>Key Binding</th>
-              <th>Action / Function</th>
-              <th>Scope</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td><kbd class="keycap">SUPER + Y</kbd></td>
-              <td>Summon / Toggle FunType floating window</td>
-              <td>Global System Key</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">Esc</kbd></td>
-              <td>Instant Exit / Dismiss window immediately</td>
-              <td>Any Mode</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">1</kbd> / <kbd class="keycap">F1</kbd></td>
-              <td>Switch to <b>Stress Shredder</b> (Arcade Mode)</td>
-              <td>Anywhere</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">2</kbd> / <kbd class="keycap">F2</kbd></td>
-              <td>Switch to <b>Zen Flow</b> (Breathing Mode)</td>
-              <td>Anywhere</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">3</kbd> / <kbd class="keycap">F3</kbd></td>
-              <td>Switch to <b>Speed Sprint</b> (15s/30s/60s)</td>
-              <td>Anywhere</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">Tab</kbd></td>
-              <td>Cycle mechanical switch audio profile</td>
-              <td>Any Mode</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">F4</kbd></td>
-              <td>Cycle aesthetic themes (Catppuccin, Tokyo Night, Nord...)</td>
-              <td>Any Mode</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">Ctrl + T</kbd></td>
-              <td>Cycle duration: <b>15s / 30s / 60s / Free Fall</b></td>
-              <td>Sprint & Shredder</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">Ctrl + M</kbd></td>
-              <td>Targeted drill generator for your weakest keys</td>
-              <td>Speed Sprint</td>
-            </tr>
-            <tr>
-              <td><kbd class="keycap">Ctrl + R</kbd> / <kbd class="keycap">F5</kbd></td>
-              <td>Instant Reset / Restart active test</td>
-              <td>Any Mode</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="bg-card border border-border rounded-xl p-5 font-mono text-xs text-foreground overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden leading-relaxed shadow-lg" id="setup-code-block">
+# ~/.config/hypr/hyprland.conf (or ~/.config/hypr/bindings.lua in Omarchy)
+bind = SUPER, Y, exec, ~/.local/bin/funtype
+windowrulev2 = float, class:^(funtype)$
+windowrulev2 = size 1040 660, class:^(funtype)$
+windowrulev2 = center, class:^(funtype)$
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-inner">
-        <div class="logo-group">
-          <img src="/favicon.svg" alt="FunType Logo" class="logo-icon">
-          <span style="font-family: var(--font-mono); font-weight: 700;">FunType</span>
-          <span class="footer-copy">— Built with Rust for developers. Open Source (MIT).</span>
-        </div>
-
-        <ul class="footer-links">
-          <li><a href="https://github.com/KOUSTAV2409/funtype" target="_blank" rel="noopener noreferrer">GitHub Repository</a></li>
-          <li><a href="https://github.com/KOUSTAV2409/funtype/blob/main/LICENSE" target="_blank" rel="noopener noreferrer">License</a></li>
-          <li><a href="https://github.com/KOUSTAV2409" target="_blank" rel="noopener noreferrer">Created by @KOUSTAV2409</a></li>
-        </ul>
+  <footer class="border-t border-border py-12 bg-background text-xs text-muted-foreground">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3">
+        <img src="favicon.svg" alt="FunType Icon" class="w-4 h-4 rounded">
+        <span>FunType — Crafted in Rust by <a href="https://github.com/KOUSTAV2409" target="_blank" rel="noopener noreferrer" class="text-foreground hover:underline transition-colors">@KOUSTAV2409</a>. Open Source (MIT).</span>
       </div>
+
+      <ul class="flex gap-6">
+        <li><a href="https://github.com/KOUSTAV2409/funtype" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">Repository</a></li>
+        <li><a href="https://github.com/KOUSTAV2409/funtype/issues" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">Issues</a></li>
+        <li><a href="https://github.com/KOUSTAV2409/funtype/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">MIT License</a></li>
+      </ul>
     </div>
   </footer>
 
-  <script src="/app.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>

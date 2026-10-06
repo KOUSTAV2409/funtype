@@ -1,9 +1,9 @@
 /* ==============================================================================
    FunType - Web Simulator & Audio Synthesizer Engine
-   Pure Web Audio API & Canvas Particle System
+   Pure Web Audio API & Canvas Particle System (Zero External Assets)
    ============================================================================== */
 
-// --- 1. Web Audio Synthesizer (Zero External Audio Files) ---
+// --- 1. Web Audio Synthesizer ---
 class MechanicalAudioEngine {
   constructor() {
     this.ctx = null;
@@ -56,34 +56,34 @@ class MechanicalAudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'triangle';
-    osc.frequency.setValueAtTime(160, t);
-    osc.frequency.exponentialRampToValueAtTime(35, t + 0.18);
+    osc.frequency.setValueAtTime(140, t);
+    osc.frequency.exponentialRampToValueAtTime(32, t + 0.16);
 
-    gain.gain.setValueAtTime(0.25, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.16);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(t);
-    osc.stop(t + 0.18);
+    osc.stop(t + 0.16);
   }
 
-  // Holy Panda: Deep body + tactile snap
+  // Holy Panda: Deep body + tactile bump snap
   synthesizeHolyPanda(t) {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const filter = this.ctx.createBiquadFilter();
 
     osc.type = 'triangle';
-    const baseFreq = 140 + Math.random() * 25;
+    const baseFreq = 145 + Math.random() * 20;
     osc.frequency.setValueAtTime(baseFreq, t);
     osc.frequency.exponentialRampToValueAtTime(45, t + 0.05);
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(450, t);
+    filter.frequency.setValueAtTime(460, t);
 
-    gain.gain.setValueAtTime(0.28, t);
+    gain.gain.setValueAtTime(0.25, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.055);
 
     osc.connect(filter);
@@ -97,8 +97,8 @@ class MechanicalAudioEngine {
     const snapOsc = this.ctx.createOscillator();
     const snapGain = this.ctx.createGain();
     snapOsc.type = 'sine';
-    snapOsc.frequency.setValueAtTime(1100 + Math.random() * 200, t);
-    snapGain.gain.setValueAtTime(0.08, t);
+    snapOsc.frequency.setValueAtTime(1150 + Math.random() * 200, t);
+    snapGain.gain.setValueAtTime(0.06, t);
     snapGain.gain.exponentialRampToValueAtTime(0.001, t + 0.015);
 
     snapOsc.connect(snapGain);
@@ -107,16 +107,16 @@ class MechanicalAudioEngine {
     snapOsc.stop(t + 0.02);
   }
 
-  // Cherry Blue: High crisp click
+  // Cherry Blue: Crisp click + metallic chime
   synthesizeCherryBlue(t) {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(1800 + Math.random() * 300, t);
-    osc.frequency.exponentialRampToValueAtTime(300, t + 0.03);
+    osc.frequency.setValueAtTime(1750 + Math.random() * 250, t);
+    osc.frequency.exponentialRampToValueAtTime(320, t + 0.03);
 
-    gain.gain.setValueAtTime(0.18, t);
+    gain.gain.setValueAtTime(0.16, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
 
     osc.connect(gain);
@@ -126,20 +126,20 @@ class MechanicalAudioEngine {
     osc.stop(t + 0.04);
   }
 
-  // Creamy Linear: Soft dampened pop
+  // Creamy Linear: Soft dampened bottom-out
   synthesizeCreamyLinear(t) {
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
     const filter = this.ctx.createBiquadFilter();
 
     osc.type = 'sine';
-    osc.frequency.setValueAtTime(260 + Math.random() * 20, t);
+    osc.frequency.setValueAtTime(250 + Math.random() * 20, t);
     osc.frequency.exponentialRampToValueAtTime(80, t + 0.04);
 
     filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(320, t);
+    filter.frequency.setValueAtTime(340, t);
 
-    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.setValueAtTime(0.2, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
 
     osc.connect(filter);
@@ -156,11 +156,11 @@ class MechanicalAudioEngine {
     const gain = this.ctx.createGain();
 
     osc.type = 'sine';
-    const startF = 350 + Math.random() * 80;
+    const startF = 340 + Math.random() * 80;
     osc.frequency.setValueAtTime(startF, t);
-    osc.frequency.exponentialRampToValueAtTime(startF * 2.2, t + 0.06);
+    osc.frequency.exponentialRampToValueAtTime(startF * 2.1, t + 0.06);
 
-    gain.gain.setValueAtTime(0.22, t);
+    gain.gain.setValueAtTime(0.2, t);
     gain.gain.exponentialRampToValueAtTime(0.001, t + 0.065);
 
     osc.connect(gain);
@@ -176,10 +176,13 @@ const audio = new MechanicalAudioEngine();
 // --- 2. Interactive Simulator Controller ---
 class SimulatorApp {
   constructor() {
-    this.activeMode = 'shredder'; // 'shredder', 'zen', 'sprint'
+    this.activeMode = 'shredder';
 
     // Shredder state
-    this.stressors = [];
+    this.stressors = [
+      { text: 'merge conflict', x: 60, y: 70, speed: 0.55 },
+      { text: 'prod incident', x: 280, y: 45, speed: 0.5 }
+    ];
     this.stressLevel = 85;
     this.score = 0;
     this.particles = [];
@@ -187,10 +190,9 @@ class SimulatorApp {
     this.ctx = this.shredderCanvas ? this.shredderCanvas.getContext('2d') : null;
     this.lastSpawn = 0;
     this.stressWords = [
-      'merge conflict', 'segfault', 'prod incident', 'infinite loop',
-      'jira sprint', 'emergency call', 'memory leak', 'null pointer',
-      'git push -f', '404 not found', 'unpaid overtime', 'scope creep',
-      'unresolved blocker', 'corrupted cache', 'stack overflow'
+      'merge conflict', 'prod incident', 'segfault', 'null pointer',
+      'infinite loop', 'git push -f', 'memory leak', 'jira sprint',
+      'emergency call', '404 not found', 'unpaid overtime', 'scope creep'
     ];
 
     // Sprint state
@@ -205,8 +207,8 @@ class SimulatorApp {
 
     // Zen state
     this.zenPhrases = [
-      "Breathe in tranquility. Release the deadline tension.",
-      "The obstacle in the code becomes the way forward.",
+      "Breathe in calm. Exhale the deadline tension.",
+      "The obstacle in the code is the way forward.",
       "Calm mind, steady hands, effortless cadence.",
       "You are not your compiler errors; you are the architect.",
       "Let each keystroke be deliberate and without haste."
@@ -223,13 +225,37 @@ class SimulatorApp {
     this.renderSprintText();
     this.renderZenText();
     this.startShredderLoop();
+    this.focusActiveInput();
+  }
+
+  focusActiveInput() {
+    if (this.activeMode === 'shredder') {
+      const inp = document.getElementById('shredder-input');
+      if (inp) inp.focus();
+    } else if (this.activeMode === 'zen') {
+      const inp = document.getElementById('zen-typer');
+      if (inp) inp.focus();
+    } else if (this.activeMode === 'sprint') {
+      const inp = document.getElementById('sprint-typer');
+      if (inp) inp.focus();
+    }
+  }
+
+  cycleAudioProfile() {
+    const profiles = ['holypanda', 'blue', 'creamy', 'bubble', 'silent'];
+    const currentIdx = profiles.indexOf(audio.profile);
+    const nextIdx = (currentIdx + 1) % profiles.length;
+    audio.profile = profiles[nextIdx];
+    const select = document.getElementById('sound-profile-select');
+    if (select) select.value = audio.profile;
+    audio.playKey();
   }
 
   bindEvents() {
     // Mode tabs
-    const modeTabs = document.querySelectorAll('.mode-tab-btn');
+    const modeTabs = document.querySelectorAll('.mode-pill-btn, .mode-tab-btn');
     modeTabs.forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const mode = btn.dataset.mode;
         this.switchMode(mode);
       });
@@ -241,7 +267,7 @@ class SimulatorApp {
       soundToggle.addEventListener('click', () => {
         audio.init();
         audio.enabled = !audio.enabled;
-        soundToggle.textContent = audio.enabled ? '🔊 Sound: ON' : '🔇 Sound: OFF';
+        soundToggle.textContent = audio.enabled ? 'Audio: ON' : 'Audio: OFF';
       });
     }
 
@@ -253,20 +279,6 @@ class SimulatorApp {
         audio.playKey();
       });
     }
-
-    // Audio cards preview buttons in Audio section
-    const audioCards = document.querySelectorAll('.audio-card');
-    audioCards.forEach(card => {
-      card.addEventListener('click', () => {
-        audio.init();
-        const prof = card.dataset.profile;
-        if (prof) {
-          audio.profile = prof;
-          if (soundSelect) soundSelect.value = prof;
-          audio.playKey();
-        }
-      });
-    });
 
     // Shredder typing input
     const shredderInput = document.getElementById('shredder-input');
@@ -282,13 +294,22 @@ class SimulatorApp {
       });
     }
 
+    // Canvas & Shredder view click to focus
+    const shredderView = document.getElementById('shredder-view');
+    if (shredderView) {
+      shredderView.addEventListener('click', (e) => {
+        if (e.target !== shredderInput) {
+          if (shredderInput) shredderInput.focus();
+        }
+      });
+    }
+
     // Sprint Typer Input
     const sprintTyper = document.getElementById('sprint-typer');
     if (sprintTyper) {
       sprintTyper.addEventListener('input', (e) => {
         this.handleSprintInput(e);
       });
-      // Focus simulator on click anywhere inside sprint body
       const sprintView = document.getElementById('sprint-view');
       if (sprintView) {
         sprintView.addEventListener('click', () => sprintTyper.focus());
@@ -307,7 +328,48 @@ class SimulatorApp {
       }
     }
 
-    // Rematch / Reset buttons
+    // Global stage click to focus active typer
+    const stage = document.getElementById('simulator-stage');
+    if (stage) {
+      stage.addEventListener('click', (e) => {
+        if (!e.target.closest('button, select, a')) {
+          this.focusActiveInput();
+        }
+      });
+    }
+
+    // Global keyboard shortcuts (1, 2, 3 to switch, Tab for sound, printable to route)
+    window.addEventListener('keydown', (e) => {
+      const activeEl = document.activeElement;
+      const isInput = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+
+      if (e.key === 'Escape') {
+        if (isInput) activeEl.blur();
+        return;
+      }
+
+      if (e.key === 'Tab' && document.getElementById('simulator')?.contains(activeEl)) {
+        e.preventDefault();
+        this.cycleAudioProfile();
+        return;
+      }
+
+      // Switch mode with 1, 2, 3 if not typing text inside input
+      if (!isInput && (e.key === '1' || e.key === '2' || e.key === '3')) {
+        e.preventDefault();
+        if (e.key === '1') this.switchMode('shredder');
+        if (e.key === '2') this.switchMode('zen');
+        if (e.key === '3') this.switchMode('sprint');
+        return;
+      }
+
+      // If printable key and no input focused, focus active mode input immediately
+      if (!isInput && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        this.focusActiveInput();
+      }
+    });
+
+    // Reset button
     const restartBtn = document.getElementById('btn-simulator-restart');
     if (restartBtn) {
       restartBtn.addEventListener('click', () => {
@@ -318,30 +380,47 @@ class SimulatorApp {
 
   switchMode(mode) {
     this.activeMode = mode;
-    document.querySelectorAll('.mode-tab-btn').forEach(b => {
-      b.classList.toggle('active', b.dataset.mode === mode);
+    document.querySelectorAll('.mode-pill-btn, .mode-tab-btn').forEach(b => {
+      const isActive = b.dataset.mode === mode;
+      if (isActive) {
+        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all bg-primary text-primary-foreground shadow-sm';
+      } else {
+        b.className = 'mode-pill-btn px-3 py-1 rounded text-xs font-mono font-medium transition-all text-muted-foreground hover:text-foreground';
+      }
     });
 
-    document.getElementById('shredder-view').classList.toggle('active', mode === 'shredder');
-    document.getElementById('zen-view').classList.toggle('active', mode === 'zen');
-    document.getElementById('sprint-view').classList.toggle('active', mode === 'sprint');
+    const shredder = document.getElementById('shredder-view');
+    const zen = document.getElementById('zen-view');
+    const sprint = document.getElementById('sprint-view');
+
+    if (shredder) {
+      shredder.classList.toggle('hidden', mode !== 'shredder');
+      shredder.classList.toggle('block', mode === 'shredder');
+    }
+    if (zen) {
+      zen.classList.toggle('hidden', mode !== 'zen');
+      zen.classList.toggle('flex', mode === 'zen');
+    }
+    if (sprint) {
+      sprint.classList.toggle('hidden', mode !== 'sprint');
+      sprint.classList.toggle('flex', mode === 'sprint');
+    }
 
     if (mode === 'shredder') {
-      const inp = document.getElementById('shredder-input');
-      if (inp) inp.focus();
+      if (this.resizeCanvas) this.resizeCanvas();
     } else if (mode === 'sprint') {
-      const inp = document.getElementById('sprint-typer');
-      if (inp) inp.focus();
       this.resetSprint();
-    } else if (mode === 'zen') {
-      const inp = document.getElementById('zen-typer');
-      if (inp) inp.focus();
     }
+
+    this.focusActiveInput();
   }
 
   resetCurrentMode() {
     if (this.activeMode === 'shredder') {
-      this.stressors = [];
+      this.stressors = [
+        { text: 'merge conflict', x: 60, y: 70, speed: 0.55 },
+        { text: 'prod incident', x: 280, y: 45, speed: 0.5 }
+      ];
       this.stressLevel = 85;
       this.score = 0;
       this.updateShredderHud();
@@ -357,16 +436,20 @@ class SimulatorApp {
     }
   }
 
-  // --- Shredder Mode Mechanics ---
+  // --- Shredder Mechanics ---
   setupShredderCanvas() {
     if (!this.shredderCanvas) return;
     const resize = () => {
-      const rect = this.shredderCanvas.parentElement.getBoundingClientRect();
-      this.shredderCanvas.width = rect.width;
-      this.shredderCanvas.height = rect.height;
+      const parent = this.shredderCanvas.parentElement;
+      const rect = parent ? parent.getBoundingClientRect() : null;
+      const w = (rect && rect.width > 0) ? rect.width : (this.shredderCanvas.clientWidth || 800);
+      const h = (rect && rect.height > 0) ? rect.height : (this.shredderCanvas.clientHeight || 320);
+      this.shredderCanvas.width = Math.max(w, 320);
+      this.shredderCanvas.height = Math.max(h, 240);
     };
     resize();
     window.addEventListener('resize', resize);
+    this.resizeCanvas = resize;
   }
 
   startShredderLoop() {
@@ -384,34 +467,30 @@ class SimulatorApp {
     if (time - this.lastSpawn > 1400 && this.stressors.length < 5) {
       this.lastSpawn = time;
       const word = this.stressWords[Math.floor(Math.random() * this.stressWords.length)];
-      const x = 50 + Math.random() * (this.shredderCanvas.width - 200);
+      const x = 40 + Math.random() * (this.shredderCanvas.width - 220);
       this.stressors.push({
         text: word,
-        x: x,
+        x: Math.max(30, x),
         y: 20,
-        speed: 0.5 + Math.random() * 0.4,
-        color: '#f38ba8'
+        speed: 0.5 + Math.random() * 0.35
       });
     }
 
-    // Move stressors
     for (let i = this.stressors.length - 1; i >= 0; i--) {
       const s = this.stressors[i];
       s.y += s.speed;
-      if (s.y > this.shredderCanvas.height - 70) {
-        // reached bottom - add a bit of stress back
+      if (s.y > this.shredderCanvas.height - 60) {
         this.stressLevel = Math.min(100, this.stressLevel + 4);
         this.stressors.splice(i, 1);
         this.updateShredderHud();
       }
     }
 
-    // Update particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
       p.x += p.vx;
       p.y += p.vy;
-      p.alpha -= 0.025;
+      p.alpha -= 0.03;
       if (p.alpha <= 0) {
         this.particles.splice(i, 1);
       }
@@ -419,33 +498,53 @@ class SimulatorApp {
   }
 
   renderShredder() {
+    if (!this.ctx) return;
     this.ctx.clearRect(0, 0, this.shredderCanvas.width, this.shredderCanvas.height);
 
-    // Draw stressors
-    this.ctx.font = '15px "JetBrains Mono", monospace';
+    this.ctx.font = '13.5px "JetBrains Mono", monospace';
     this.ctx.textAlign = 'left';
+
+    const shredderInput = document.getElementById('shredder-input');
+    const currentTyped = shredderInput ? shredderInput.value.trim().toLowerCase() : '';
 
     this.stressors.forEach(s => {
       const textWidth = this.ctx.measureText(s.text).width;
+      const isPrefixMatch = currentTyped.length > 0 && s.text.toLowerCase().startsWith(currentTyped);
       
-      // Capsule pill background
-      this.ctx.fillStyle = 'rgba(24, 24, 37, 0.85)';
-      this.ctx.strokeStyle = '#f38ba8';
-      this.ctx.lineWidth = 1.5;
+      // Clean pill background
+      this.ctx.fillStyle = 'rgba(28, 27, 34, 0.95)';
+      this.ctx.strokeStyle = isPrefixMatch ? '#6366f1' : 'rgba(255, 255, 255, 0.12)';
+      this.ctx.lineWidth = isPrefixMatch ? 1.5 : 1;
       this.ctx.beginPath();
-      this.ctx.roundRect(s.x - 8, s.y - 18, textWidth + 16, 26, 6);
+      if (this.ctx.roundRect) {
+        this.ctx.roundRect(s.x - 8, s.y - 17, textWidth + 16, 24, 6);
+      } else {
+        this.ctx.rect(s.x - 8, s.y - 17, textWidth + 16, 24);
+      }
       this.ctx.fill();
       this.ctx.stroke();
 
-      // Text
-      this.ctx.fillStyle = '#f38ba8';
-      this.ctx.fillText(s.text, s.x, s.y);
+      // Text with highlighted match
+      if (isPrefixMatch) {
+        const matchedText = s.text.slice(0, currentTyped.length);
+        const restText = s.text.slice(currentTyped.length);
+        const matchedWidth = this.ctx.measureText(matchedText).width;
+
+        this.ctx.fillStyle = '#818cf8';
+        this.ctx.fillText(matchedText, s.x, s.y);
+
+        this.ctx.fillStyle = '#f4f4f7';
+        this.ctx.fillText(restText, s.x + matchedWidth, s.y);
+      } else {
+        this.ctx.fillStyle = '#f4f4f7';
+        this.ctx.fillText(s.text, s.x, s.y);
+      }
     });
 
-    // Draw explosion particles
+    // Clean particles
     this.particles.forEach(p => {
       this.ctx.fillStyle = p.color;
-      this.ctx.globalAlpha = p.alpha;
+      this.ctx.globalAlpha = Math.max(0, p.alpha);
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       this.ctx.fill();
@@ -472,16 +571,16 @@ class SimulatorApp {
   }
 
   spawnExplosion(x, y) {
-    const colors = ['#a6e3a1', '#cba6f7', '#89b4fa', '#fab387', '#f5c2e7'];
-    for (let i = 0; i < 30; i++) {
+    const colors = ['#6366f1', '#818cf8', '#a5b4fc', '#c7d2fe', '#ffffff'];
+    for (let i = 0; i < 24; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 4;
+      const speed = 1.2 + Math.random() * 3.5;
       this.particles.push({
         x: x,
         y: y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        radius: 2 + Math.random() * 2.5,
+        radius: 1.5 + Math.random() * 2,
         alpha: 1.0,
         color: colors[Math.floor(Math.random() * colors.length)]
       });
@@ -501,18 +600,19 @@ class SimulatorApp {
   renderSprintText() {
     const container = document.getElementById('sprint-text-display');
     if (!container) return;
-    let html = '';
+    const fragment = document.createDocumentFragment();
     for (let i = 0; i < this.sprintQuote.length; i++) {
       const char = this.sprintQuote[i];
-      let cls = '';
+      const span = document.createElement('span');
       if (i < this.sprintIndex) {
-        cls = 'char-correct';
+        span.className = 'char-correct';
       } else if (i === this.sprintIndex) {
-        cls = 'char-current';
+        span.className = 'char-current';
       }
-      html += `<span class="${cls}">${char}</span>`;
+      span.textContent = char;
+      fragment.appendChild(span);
     }
-    container.innerHTML = html;
+    container.replaceChildren(fragment);
   }
 
   handleSprintInput(e) {
@@ -577,7 +677,7 @@ class SimulatorApp {
     this.sprintActive = false;
     audio.playExplosion();
     const timerBadge = document.getElementById('sprint-timer-val');
-    if (timerBadge) timerBadge.textContent = 'DONE!';
+    if (timerBadge) timerBadge.textContent = 'DONE';
   }
 
   resetSprint() {
@@ -605,18 +705,19 @@ class SimulatorApp {
     const container = document.getElementById('zen-text-display');
     if (!container) return;
     const currentPhrase = this.zenPhrases[this.zenPhraseIndex];
-    let html = '';
+    const fragment = document.createDocumentFragment();
     for (let i = 0; i < currentPhrase.length; i++) {
       const char = currentPhrase[i];
-      let cls = '';
+      const span = document.createElement('span');
       if (i < this.zenCharIndex) {
-        cls = 'char-correct';
+        span.className = 'char-correct';
       } else if (i === this.zenCharIndex) {
-        cls = 'char-current';
+        span.className = 'char-current';
       }
-      html += `<span class="${cls}">${char}</span>`;
+      span.textContent = char;
+      fragment.appendChild(span);
     }
-    container.innerHTML = html;
+    container.replaceChildren(fragment);
   }
 
   handleZenInput(e) {
@@ -641,42 +742,23 @@ class SimulatorApp {
   }
 }
 
-// --- 3. UI Helpers: Copy Command Tabs, Themes, Hotkeys ---
+// --- 3. DOM Ready Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize Simulator
   const app = new SimulatorApp();
 
-  // Install command switcher
-  const installCommands = {
-    curl: "curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash",
-    clone: "git clone https://github.com/KOUSTAV2409/funtype.git && cd funtype && ./install.sh",
-    hyprland: "./install.sh # Auto-configures SUPER+Y & floating rules in ~/.config/hypr/"
-  };
-
-  const tabs = document.querySelectorAll('.install-tab');
+  // One-click copy install command
   const codeElem = document.getElementById('install-cmd-text');
   const copyBtn = document.getElementById('install-copy-btn');
-
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      const target = tab.dataset.target;
-      if (codeElem && installCommands[target]) {
-        codeElem.textContent = installCommands[target];
-      }
-    });
-  });
 
   if (copyBtn && codeElem) {
     copyBtn.addEventListener('click', async () => {
       try {
         await navigator.clipboard.writeText(codeElem.textContent.trim());
-        copyBtn.textContent = '✓ Copied!';
-        copyBtn.classList.add('copied');
+        copyBtn.textContent = 'Copied';
+        copyBtn.classList.add('bg-primary', 'text-primary-foreground', 'border-primary');
         setTimeout(() => {
           copyBtn.textContent = 'Copy';
-          copyBtn.classList.remove('copied');
+          copyBtn.classList.remove('bg-primary', 'text-primary-foreground', 'border-primary');
         }, 2000);
       } catch (err) {
         console.error('Clipboard copy failed', err);
@@ -684,17 +766,53 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Theme Switcher
-  const themeBtn = document.getElementById('theme-toggle-btn');
-  const themes = ['catppuccin', 'tokyo-night', 'nord', 'rose-pine'];
-  let currentThemeIdx = 0;
+  // Setup tab switcher
+  const setupSnippets = {
+    hyprland: `# ~/.config/hypr/hyprland.conf (or ~/.config/hypr/bindings.lua in Omarchy)
+bind = SUPER, Y, exec, ~/.local/bin/funtype
+windowrulev2 = float, class:^(funtype)$
+windowrulev2 = size 1040 660, class:^(funtype)$
+windowrulev2 = center, class:^(funtype)$`,
 
-  if (themeBtn) {
-    themeBtn.addEventListener('click', () => {
-      currentThemeIdx = (currentThemeIdx + 1) % themes.length;
-      const theme = themes[currentThemeIdx];
-      document.documentElement.setAttribute('data-theme', theme);
-      themeBtn.innerHTML = `🎨 Theme: ${theme.replace('-', ' ').toUpperCase()}`;
+    i3: `# ~/.config/i3/config or ~/.config/sway/config
+bindsym $mod+y exec ~/.local/bin/funtype
+for_window [class="funtype"] floating enable, resize set 1040 660, move position center`,
+
+    macos: `# ~/.config/skhd/skhdrc (via skhd or Raycast script)
+cmd + alt - y : ~/.local/bin/funtype
+
+# Or map SUPER+Y directly inside Raycast / Shortcuts app`
+  };
+
+  const setupTabs = document.querySelectorAll('.setup-tab-btn');
+  const setupCodeBlock = document.getElementById('setup-code-block');
+
+  setupTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      setupTabs.forEach(t => {
+        t.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors';
+      });
+      tab.className = 'setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-border transition-colors';
+      const cfg = tab.dataset.config;
+      if (setupCodeBlock && setupSnippets[cfg]) {
+        setupCodeBlock.textContent = setupSnippets[cfg];
+      }
     });
-  }
+  });
+
+  // User gesture audio unlock
+  const unlockAudio = () => {
+    audio.init();
+    window.removeEventListener('click', unlockAudio);
+    window.removeEventListener('keydown', unlockAudio);
+    window.removeEventListener('touchstart', unlockAudio);
+  };
+  window.addEventListener('click', unlockAudio, { passive: true });
+  window.addEventListener('keydown', unlockAudio, { passive: true });
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
+
+  // Auto-focus simulator input after initial layout paint
+  setTimeout(() => {
+    app.focusActiveInput();
+  }, 250);
 });

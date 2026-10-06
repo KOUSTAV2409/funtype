@@ -3,11 +3,7 @@
 # FunType - Universal Unix Installer (Arch / Omarchy / Debian / Fedora / macOS)
 # ==============================================================================
 
-set -e
-
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BIN_DEST="${HOME}/.local/bin"
-APP_DEST="${HOME}/.local/share/applications"
+set -euo pipefail
 
 echo "⚡ Installing FunType..."
 
@@ -18,38 +14,59 @@ if ! command -v cargo >/dev/null 2>&1; then
     exit 1
 fi
 
-# 2. Build optimized release binary
-echo "🔨 Building optimized release binary..."
-cd "$ROOT"
-cargo build --release
+BIN_DEST="${HOME}/.local/bin"
+APP_DEST="${HOME}/.local/share/applications"
 
-# 3. Create destination directory
+# 2. Determine source directory (support both local execution and curl | bash)
+SCRIPT_SOURCE="${BASH_SOURCE[0]:-}"
+CLEANUP_TMP=false
+
+if [[ -n "$SCRIPT_SOURCE" && -f "$(dirname "$SCRIPT_SOURCE")/Cargo.toml" ]]; then
+    ROOT="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+else
+    if ! command -v git >/dev/null 2>&1; then
+        echo "❌ Error: git is required to download source when piping from curl."
+        exit 1
+    fi
+    echo "📦 Fetching latest FunType source..."
+    ROOT="$(mktemp -d -t funtype-install.XXXXXX)"
+    CLEANUP_TMP=true
+    trap 'if [[ "$CLEANUP_TMP" == true && -d "$ROOT" ]]; then rm -rf "$ROOT"; fi' EXIT INT TERM
+    git clone --depth 1 https://github.com/KOUSTAV2409/funtype.git "$ROOT" >/dev/null 2>&1
+fi
+
+# 3. Build optimized release binary
+echo "🔨 Building optimized release binary..."
+(cd "$ROOT" && cargo build --release)
+
+# 4. Create destination directory
 mkdir -p "$BIN_DEST"
 mkdir -p "$APP_DEST"
 
-# 4. Copy binary and launcher
+# 5. Copy binary and launcher
 cp -f "$ROOT/target/release/funtype" "$BIN_DEST/funtype-bin"
 cp -f "$ROOT/bin/funtype" "$BIN_DEST/funtype"
 chmod +x "$BIN_DEST/funtype" "$BIN_DEST/funtype-bin"
 
 echo "✅ Installed binary to: $BIN_DEST/funtype"
 
-# 5. Install Desktop entry
+# 6. Install Desktop entry
 if [[ -f "$ROOT/funtype.desktop" ]]; then
     sed -e "s|Exec=funtype|Exec=${BIN_DEST}/funtype|g" "$ROOT/funtype.desktop" > "$APP_DEST/funtype.desktop"
     echo "✅ Installed desktop entry to: $APP_DEST/funtype.desktop"
 fi
 
-# 6. Omarchy / Hyprland auto-configuration
+# 7. Omarchy / Hyprland auto-configuration with safe backups
 HYPR_BINDINGS="${HOME}/.config/hypr/bindings.lua"
 HYPR_MAIN="${HOME}/.config/hypr/hyprland.lua"
 
 if [[ -f "$HYPR_BINDINGS" ]]; then
     if ! grep -q "FunType" "$HYPR_BINDINGS"; then
+        cp -n "$HYPR_BINDINGS" "${HYPR_BINDINGS}.bak" 2>/dev/null || true
         echo "" >> "$HYPR_BINDINGS"
         echo "-- FunType - Instant Stress Burster Typing Game" >> "$HYPR_BINDINGS"
         echo "o.bind(\"SUPER + Y\", \"FunType\", os.getenv(\"HOME\") .. \"/.local/bin/funtype\")" >> "$HYPR_BINDINGS"
-        echo "✨ Added shortcut 'SUPER + Y' to ~/.config/hypr/bindings.lua"
+        echo "✨ Added shortcut 'SUPER + Y' to ~/.config/hypr/bindings.lua (backup created)"
     else
         echo "ℹ️  Shortcut binding already present in ~/.config/hypr/bindings.lua"
     fi
@@ -57,10 +74,11 @@ fi
 
 if [[ -f "$HYPR_MAIN" ]]; then
     if ! grep -q 'o.window("funtype"' "$HYPR_MAIN"; then
+        cp -n "$HYPR_MAIN" "${HYPR_MAIN}.bak" 2>/dev/null || true
         echo "" >> "$HYPR_MAIN"
         echo '-- Floating window rule for FunType' >> "$HYPR_MAIN"
         echo 'o.window("funtype", { float = true, center = true, size = { 1040, 660 } })' >> "$HYPR_MAIN"
-        echo "✨ Added floating window rule to ~/.config/hypr/hyprland.lua"
+        echo "✨ Added floating window rule to ~/.config/hypr/hyprland.lua (backup created)"
     else
         echo "ℹ️  Window rule already present in ~/.config/hypr/hyprland.lua"
     fi

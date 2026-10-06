@@ -21,7 +21,8 @@ else
 fi
 
 # 2. Instant Toggle: If already running, toggle off cleanly
-FUNTYPE_PID=$(pgrep -x "funtype-bin" || pgrep -x "funtype" | grep -v "^$$$" | head -n 1)
+CURRENT_UID="$(id -u)"
+FUNTYPE_PID=$(pgrep -u "$CURRENT_UID" -x "funtype-bin" 2>/dev/null || pgrep -u "$CURRENT_UID" -x "funtype" 2>/dev/null | grep -v "^$$$" | head -n 1)
 if [[ -n "$FUNTYPE_PID" ]]; then
     kill -TERM "$FUNTYPE_PID" 2>/dev/null
     exit 0
