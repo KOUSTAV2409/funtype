@@ -322,12 +322,12 @@ impl StressShredder {
             let font_size = 22.0;
             let text_dims = measure_text(&word.text, None, font_size as u16, 1.0);
 
-            let pad_x = 12.0;
-            let pad_y = 6.0;
+            let pad_x = 14.0;
+            let pad_y = 7.0;
             let box_x = word.x - pad_x + offset_x;
-            let box_y = word.y - text_dims.height - pad_y + offset_y;
+            let box_y = word.y - text_dims.offset_y - pad_y + offset_y;
             let box_w = text_dims.width + pad_x * 2.0;
-            let box_h = text_dims.height + pad_y * 2.0 + 4.0;
+            let box_h = text_dims.height + pad_y * 2.0;
 
             let bg_color = if word.error_timer > 0.0 {
                 Color::new(palette.danger.r * 0.35, 0.1, 0.1, 0.95)

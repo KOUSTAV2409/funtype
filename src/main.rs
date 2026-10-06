@@ -25,8 +25,18 @@ fn window_conf() -> Conf {
     }
 }
 
+const JETBRAINS_MONO: &[u8] = include_bytes!("../assets/fonts/jetbrains_mono.ttf");
+
 #[macroquad::main(window_conf)]
 async fn main() {
+    // Smooth anti-aliased font texture filtering
+    set_default_filter_mode(FilterMode::Linear);
+
+    // Load and activate high-definition JetBrains Mono typography
+    if let Ok(font) = load_ttf_font_from_bytes(JETBRAINS_MONO) {
+        set_default_font(font);
+    }
+
     let mut sound = SoundEngine::new().await;
     let mut theme_mode = ThemeMode::CatppuccinMocha;
     let mut current_mode = GameMode::StressShredder;

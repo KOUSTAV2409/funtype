@@ -20,18 +20,11 @@ else
     exit 1
 fi
 
-# 2. Hyprland fast toggle / focus logic
-if command -v hyprctl >/dev/null 2>&1 && [[ -n "$HYPRLAND_INSTANCE_SIGNATURE" ]]; then
-    FUNTYPE_PID=$(pgrep -x "funtype-bin" || pgrep -x "funtype" | grep -v "^$$$" | head -n 1)
-    if [[ -n "$FUNTYPE_PID" ]]; then
-        if [[ "$1" == "--toggle" ]] || [[ "$1" == "-t" ]]; then
-            kill -TERM "$FUNTYPE_PID" 2>/dev/null
-            exit 0
-        else
-            hyprctl dispatch focuswindow "title:^(FunType)$" 2>/dev/null
-            exit 0
-        fi
-    fi
+# 2. Instant Toggle: If already running, toggle off cleanly
+FUNTYPE_PID=$(pgrep -x "funtype-bin" || pgrep -x "funtype" | grep -v "^$$$" | head -n 1)
+if [[ -n "$FUNTYPE_PID" ]]; then
+    kill -TERM "$FUNTYPE_PID" 2>/dev/null
+    exit 0
 fi
 
 # 3. Launch FunType
