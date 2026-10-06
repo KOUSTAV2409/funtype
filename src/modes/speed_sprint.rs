@@ -3,6 +3,8 @@ use crate::audio::SoundEngine;
 use crate::particles::ParticleSystem;
 use crate::theme::ThemePalette;
 
+pub const AVAILABLE_DURATIONS: [f32; 3] = [15.0, 30.0, 60.0];
+
 pub struct SpeedSprint {
     pub words: Vec<String>,
     pub current_word_idx: usize,
@@ -40,6 +42,20 @@ impl SpeedSprint {
         sprint
     }
 
+    pub fn set_duration(&mut self, duration: f32) {
+        self.duration = duration;
+        self.reset();
+    }
+
+    pub fn cycle_duration(&mut self) {
+        let next_dur = match self.duration as u32 {
+            15 => 30.0,
+            30 => 60.0,
+            _ => 15.0,
+        };
+        self.set_duration(next_dur);
+    }
+
     pub fn reset(&mut self) {
         self.generate_words();
         self.current_word_idx = 0;
@@ -64,7 +80,7 @@ impl SpeedSprint {
         ];
 
         self.words.clear();
-        for _ in 0..120 {
+        for _ in 0..140 {
             let idx = rand::gen_range(0, pool.len());
             self.words.push(pool[idx].to_string());
         }
@@ -148,6 +164,55 @@ impl SpeedSprint {
         }
     }
 
+    pub fn handle_click(&mut self, mx: f32, my: f32, screen_w: f32, screen_h: f32) -> bool {
+        if self.is_finished {
+            // Check clicks on Results Card duration buttons
+            let card_w = 480.0;
+            let card_h = 300.0;
+            let card_x = (screen_w - card_w) * 0.5;
+            let card_y = (screen_h - card_h) * 0.5;
+            let btn_y = card_y + card_h - 68.0;
+            let btn_h = 32.0;
+
+            if my >= btn_y && my <= btn_y + btn_h {
+                let pill_w = 64.0;
+                let spacing = 12.0;
+                let total_w = 3.0 * pill_w + 2.0 * spacing;
+                let start_x = card_x + (card_w - total_w) * 0.5;
+
+                for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
+                    let bx = start_x + (idx as f32 * (pill_w + spacing));
+                    if mx >= bx && mx <= bx + pill_w {
+                        self.set_duration(dur);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // Check clicks on Main Sprint Duration Bar
+        let bar_y = 142.0;
+        let bar_h = 30.0;
+        if my >= bar_y && my <= bar_y + bar_h {
+            let pill_w = 62.0;
+            let spacing = 10.0;
+            let total_pills_w = 3.0 * pill_w + 2.0 * spacing;
+            let label_w = 64.0;
+            let start_x = (screen_w - (label_w + total_pills_w)) * 0.5 + label_w;
+
+            for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
+                let bx = start_x + (idx as f32 * (pill_w + spacing));
+                if mx >= bx && mx <= bx + pill_w {
+                    self.set_duration(dur);
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
     pub fn update(&mut self, dt: f32) {
         if self.is_started && !self.is_finished {
             self.time_remaining -= dt;
@@ -176,34 +241,58 @@ impl SpeedSprint {
         if self.is_finished {
             // Results Card
             let card_w = 480.0;
-            let card_h = 280.0;
+            let card_h = 300.0;
             let card_x = (screen_w - card_w) * 0.5 + offset_x;
             let card_y = (screen_h - card_h) * 0.5 + offset_y;
 
             draw_rectangle(card_x, card_y, card_w, card_h, palette.surface_bright);
             draw_rectangle_lines(card_x, card_y, card_w, card_h, 2.0, palette.accent);
 
-            let title = "SPRINT COMPLETE";
-            let t_dims = measure_text(title, None, 28, 1.0);
-            draw_text(title, card_x + (card_w - t_dims.width) * 0.5, card_y + 45.0, 28.0, palette.accent);
+            let title = format!("{:.0}S SPRINT COMPLETE", self.duration);
+            let t_dims = measure_text(&title, None, 26, 1.0);
+            draw_text(&title, card_x + (card_w - t_dims.width) * 0.5, card_y + 42.0, 26.0, palette.accent);
 
             let wpm_str = format!("WPM: {:.1}", self.wpm());
             let acc_str = format!("Accuracy: {:.1}%", self.accuracy());
             let combo_str = format!("Max Combo: {}x", self.max_combo);
             let stress_relieved = format!("Stress Points Relieved: +{}", (self.wpm() * 12.0) as u32);
 
-            draw_text(&wpm_str, card_x + 50.0, card_y + 105.0, 24.0, palette.success);
-            draw_text(&acc_str, card_x + 50.0, card_y + 145.0, 24.0, palette.primary);
-            draw_text(&combo_str, card_x + 50.0, card_y + 185.0, 24.0, palette.peach);
-            draw_text(&stress_relieved, card_x + 50.0, card_y + 225.0, 20.0, palette.warning);
+            draw_text(&wpm_str, card_x + 50.0, card_y + 95.0, 24.0, palette.success);
+            draw_text(&acc_str, card_x + 50.0, card_y + 132.0, 24.0, palette.primary);
+            draw_text(&combo_str, card_x + 50.0, card_y + 168.0, 24.0, palette.peach);
+            draw_text(&stress_relieved, card_x + 50.0, card_y + 204.0, 20.0, palette.warning);
 
-            let restart_hint = "Press [Ctrl+R] to Play Again";
-            let r_dims = measure_text(restart_hint, None, 16, 1.0);
-            draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 18.0, 16.0, palette.subtext);
+            // Clickable duration options on results card
+            let pill_w = 64.0;
+            let spacing = 12.0;
+            let total_w = 3.0 * pill_w + 2.0 * spacing;
+            let start_x = card_x + (card_w - total_w) * 0.5;
+            let btn_y = card_y + card_h - 68.0;
+
+            for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
+                let bx = start_x + (idx as f32 * (pill_w + spacing));
+                let label = format!("{:.0}s", dur);
+                let is_selected = (self.duration - dur).abs() < 0.1;
+
+                if is_selected {
+                    draw_rectangle(bx, btn_y, pill_w, 28.0, palette.accent);
+                    let l_dims = measure_text(&label, None, 14, 1.0);
+                    draw_text(&label, bx + (pill_w - l_dims.width) * 0.5, btn_y + 19.0, 14.0, palette.bg);
+                } else {
+                    draw_rectangle(bx, btn_y, pill_w, 28.0, palette.surface);
+                    draw_rectangle_lines(bx, btn_y, pill_w, 28.0, 1.0, palette.border);
+                    let l_dims = measure_text(&label, None, 14, 1.0);
+                    draw_text(&label, bx + (pill_w - l_dims.width) * 0.5, btn_y + 19.0, 14.0, palette.subtext);
+                }
+            }
+
+            let restart_hint = "Click a duration above or press [Ctrl+R] to play again";
+            let r_dims = measure_text(restart_hint, None, 13, 1.0);
+            draw_text(restart_hint, card_x + (card_w - r_dims.width) * 0.5, card_y + card_h - 14.0, 13.0, palette.muted);
             return;
         }
 
-        // Live HUD Metrics Header
+        // 1. Live HUD Metrics Header
         let timer_str = format!("Time: {:.1}s", self.time_remaining);
         let wpm_str = format!("WPM: {:.0}", self.wpm());
         let acc_str = format!("Acc: {:.0}%", self.accuracy());
@@ -211,9 +300,40 @@ impl SpeedSprint {
 
         let metrics = format!("{}   |   {}   |   {}   |   {}", timer_str, wpm_str, acc_str, combo_str);
         let m_dims = measure_text(&metrics, None, 20, 1.0);
-        draw_text(&metrics, (screen_w - m_dims.width) * 0.5 + offset_x, 100.0 + offset_y, 20.0, palette.accent);
+        draw_text(&metrics, (screen_w - m_dims.width) * 0.5 + offset_x, 96.0 + offset_y, 20.0, palette.accent);
 
-        // Word Stream Display with stable 3-row layout
+        // 2. Interactive Time Selector Bar (15s | 30s | 60s)
+        let pill_w = 62.0;
+        let spacing = 10.0;
+        let total_pills_w = 3.0 * pill_w + 2.0 * spacing;
+        let label = "Time:";
+        let l_dims = measure_text(label, None, 15, 1.0);
+        let bar_total_w = l_dims.width + 16.0 + total_pills_w;
+        let start_bar_x = (screen_w - bar_total_w) * 0.5 + offset_x;
+        let bar_y = 138.0 + offset_y;
+
+        draw_text(label, start_bar_x, bar_y + 19.0, 15.0, palette.subtext);
+        let start_pills_x = start_bar_x + l_dims.width + 16.0;
+
+        for (idx, &dur) in AVAILABLE_DURATIONS.iter().enumerate() {
+            let bx = start_pills_x + (idx as f32 * (pill_w + spacing));
+            let dur_str = format!("{:.0}s", dur);
+            let is_selected = (self.duration - dur).abs() < 0.1;
+
+            if is_selected {
+                draw_rectangle(bx, bar_y, pill_w, 26.0, palette.surface_bright);
+                draw_rectangle_lines(bx, bar_y, pill_w, 26.0, 1.5, palette.primary);
+                let d_dims = measure_text(&dur_str, None, 14, 1.0);
+                draw_text(&dur_str, bx + (pill_w - d_dims.width) * 0.5, bar_y + 18.0, 14.0, palette.primary);
+            } else {
+                draw_rectangle(bx, bar_y, pill_w, 26.0, palette.surface);
+                draw_rectangle_lines(bx, bar_y, pill_w, 26.0, 1.0, palette.border);
+                let d_dims = measure_text(&dur_str, None, 14, 1.0);
+                draw_text(&dur_str, bx + (pill_w - d_dims.width) * 0.5, bar_y + 18.0, 14.0, palette.muted);
+            }
+        }
+
+        // 3. Word Stream Display with stable 3-row layout
         let start_x = 120.0 + offset_x;
         let start_y = 250.0 + offset_y;
         let font_size = 28.0;
@@ -221,7 +341,6 @@ impl SpeedSprint {
         let max_w = screen_w - 240.0;
         let space_w = 16.0;
 
-        // Group words into lines
         let mut lines: Vec<Vec<usize>> = Vec::new();
         let mut current_line: Vec<usize> = Vec::new();
         let mut current_line_w = 0.0;
@@ -240,7 +359,6 @@ impl SpeedSprint {
             lines.push(current_line);
         }
 
-        // Find which line the active word is on
         let mut active_line_idx = 0;
         for (l_idx, line) in lines.iter().enumerate() {
             if line.contains(&self.current_word_idx) {
@@ -249,7 +367,6 @@ impl SpeedSprint {
             }
         }
 
-        // Show 3 rows centered around the active line
         let visible_start_line = active_line_idx.saturating_sub(1);
         let visible_end_line = (visible_start_line + 3).min(lines.len());
 
@@ -263,7 +380,6 @@ impl SpeedSprint {
                 let w_dims = measure_text(target_word, None, font_size as u16, 1.0);
 
                 if w_idx == self.current_word_idx {
-                    // Active word: render typed characters and target comparison
                     let target_chars: Vec<char> = target_word.chars().collect();
                     let input_chars: Vec<char> = self.current_input.chars().collect();
 
@@ -290,7 +406,6 @@ impl SpeedSprint {
 
                         draw_text(&ch_s, char_x, row_y, font_size, col);
 
-                        // If this is the active typing cursor position
                         if i == input_chars.len() {
                             self.caret_x = char_x;
                             self.caret_y = row_y;
@@ -304,7 +419,6 @@ impl SpeedSprint {
                         self.caret_y = row_y;
                     }
 
-                    // Draw smooth caret
                     let caret_h = font_size * 0.85;
                     let caret_alpha = (macroquad::time::get_time() as f32 * 4.0).sin().abs() * 0.7 + 0.3;
                     let mut caret_col = palette.accent;
@@ -313,11 +427,9 @@ impl SpeedSprint {
 
                     cur_x += w_dims.width.max(char_x - cur_x) + space_w;
                 } else if w_idx < self.current_word_idx {
-                    // Already typed word
                     draw_text(target_word, cur_x, row_y, font_size, palette.muted);
                     cur_x += w_dims.width + space_w;
                 } else {
-                    // Upcoming word
                     draw_text(target_word, cur_x, row_y, font_size, palette.subtext);
                     cur_x += w_dims.width + space_w;
                 }
@@ -325,9 +437,9 @@ impl SpeedSprint {
         }
 
         if !self.is_started {
-            let start_hint = "Type the first word and press Space to start the 30s sprint";
-            let s_dims = measure_text(start_hint, None, 16, 1.0);
-            draw_text(start_hint, (screen_w - s_dims.width) * 0.5 + offset_x, screen_h - 110.0 + offset_y, 16.0, palette.peach);
+            let start_hint = "Type the first word and press Space to start the sprint | Click or [Ctrl+T] for time";
+            let s_dims = measure_text(start_hint, None, 14, 1.0);
+            draw_text(start_hint, (screen_w - s_dims.width) * 0.5 + offset_x, screen_h - 110.0 + offset_y, 14.0, palette.peach);
         }
     }
 }

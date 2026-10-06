@@ -102,6 +102,18 @@ async fn main() {
             particles.spawn_floating_text("RESTARTED", screen_w * 0.5, screen_h * 0.5, palette.warning, 24.0);
         }
 
+        // Cycle Sprint Duration via Ctrl+T
+        if is_ctrl && is_key_pressed(KeyCode::T) && current_mode == GameMode::SpeedSprint {
+            speed_sprint.cycle_duration();
+            particles.spawn_floating_text(
+                &format!("{:.0}s SPRINT", speed_sprint.duration),
+                screen_w * 0.5,
+                180.0,
+                palette.primary,
+                18.0,
+            );
+        }
+
         // Backspace handling
         if is_key_pressed(KeyCode::Backspace) {
             match current_mode {
@@ -140,7 +152,7 @@ async fn main() {
             }
         }
 
-        // 3. Process Mouse Click on Header Tabs
+        // 3. Process Mouse Click on Header Tabs & Widgets
         if is_mouse_button_pressed(MouseButton::Left) {
             let (mx, my) = mouse_position();
             let h_y = 18.0;
@@ -158,6 +170,8 @@ async fn main() {
                 } else if mx >= screen_w - 360.0 && mx <= screen_w - 210.0 {
                     theme_mode = theme_mode.next();
                 }
+            } else if current_mode == GameMode::SpeedSprint {
+                speed_sprint.handle_click(mx, my, screen_w, screen_h);
             }
         }
 

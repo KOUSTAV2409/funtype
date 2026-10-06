@@ -38,10 +38,10 @@ Target and type them to trigger **explosive particle fireworks**, combo streaks,
 - Synchronizes typing cadence with deep breathing.
 - Smooth interpolated caret with ambient aura. Mistakes are softly highlighted without harsh buzzer tones.
 
-### 3. 🚀 Speed Sprint (High-Velocity Sprint — Key `3`)
-- Fast 30-second rhythm flow.
+### 3. 🚀 Speed Sprint (High-Velocity Sprint — Key `F3`)
+- Customizable duration: **15s**, **30s**, or **60s** (click pills or press `Ctrl + T`).
 - Real-time WPM, accuracy, and combo streak counter with flame particle trails for streaks above 15.
-- Results card calculating **Stress Relieved Points** earned.
+- Results card calculating **Stress Relieved Points** earned and instant duration rematch buttons.
 
 ---
 
@@ -58,7 +58,7 @@ Toggle anytime with `[Tab]`:
 
 ## 🎨 Aesthetic Themes
 
-Cycle anytime with `[F2]`:
+Cycle anytime with `[F4]`:
 - **Catppuccin Mocha** (Default)
 - **Tokyo Night**
 - **Nord Serenity**
@@ -79,6 +79,7 @@ Cycle anytime with `[F2]`:
 | `F3` | Switch to **Speed Sprint** |
 | `Tab` | Cycle **ASMR Switch Sounds** |
 | `F4` | Cycle **Themes** |
+| `Ctrl + T` | Cycle Sprint Duration (**15s / 30s / 60s**) |
 | `Ctrl + R` / `F5` | Reset / Restart Active Mode |
 | `Backspace` | Erase Character / Undo (All Modes) |
 
