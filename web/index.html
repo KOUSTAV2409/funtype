@@ -354,7 +354,7 @@
         <div class="hidden flex-col justify-between h-[320px] relative cursor-text" id="sprint-view">
           <input type="text" id="sprint-typer" class="absolute inset-0 opacity-0 cursor-text" autocomplete="off" spellcheck="false">
           <div class="flex items-center justify-between pb-3 border-b border-border pointer-events-none">
-            <div class="flex gap-6">
+            <div class="flex items-center gap-4 sm:gap-6">
               <div class="flex flex-col">
                 <span class="font-mono text-xl font-semibold text-foreground" id="sprint-wpm-val">0</span>
                 <span class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">WPM</span>
@@ -362,6 +362,10 @@
               <div class="flex flex-col">
                 <span class="font-mono text-xl font-semibold text-foreground" id="sprint-acc-val">100%</span>
                 <span class="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">Accuracy</span>
+              </div>
+              <div id="sprint-focus-badge" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded bg-secondary border border-border text-[11px] font-mono text-muted-foreground">
+                <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                <span>Focus: <strong id="sprint-focus-text" class="text-foreground font-semibold">None</strong></span>
               </div>
             </div>
             <div class="font-mono text-sm font-semibold text-primary bg-primary/10 border border-border px-2.5 py-1 rounded" id="sprint-timer-val">30s</div>

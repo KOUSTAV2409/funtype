@@ -129,16 +129,21 @@ impl SpeedSprint {
     }
 
     pub fn practice_weak_keys(&mut self) {
-        let top = self.top_typos();
-        let weak_chars: Vec<char> = top.into_iter().map(|(c, _)| c).collect();
+        let (top_letters, top_bigrams) = self.stats.top_weaknesses();
+        let weak_chars: Vec<char> = top_letters.into_iter().map(|(c, _)| c).collect();
+        let weak_bigrams: Vec<String> = top_bigrams.into_iter().map(|(s, _)| s).collect();
         let pool = Self::standard_pool();
 
-        let matching_words: Vec<String> = if weak_chars.is_empty() {
+        let matching_words: Vec<String> = if weak_chars.is_empty() && weak_bigrams.is_empty() {
             pool.iter().map(|&s| s.to_string()).collect()
         } else {
             let filtered: Vec<String> = pool
                 .iter()
-                .filter(|w| w.chars().any(|c| weak_chars.contains(&c.to_ascii_lowercase())))
+                .filter(|w| {
+                    let w_lower = w.to_ascii_lowercase();
+                    weak_bigrams.iter().any(|bg| w_lower.contains(bg)) ||
+                    weak_chars.iter().any(|c| w_lower.contains(*c))
+                })
                 .map(|&s| s.to_string())
                 .collect();
             if filtered.is_empty() {
@@ -206,22 +211,49 @@ impl SpeedSprint {
         let pool = Self::standard_pool();
         let num_pool = vec!["42", "100", "2026", "1", "10", "256", "365", "12", "7", "99"];
 
+        let (top_letters, top_bigrams) = self.stats.top_weaknesses();
+        let weak_chars: Vec<char> = top_letters.into_iter().map(|(c, _)| c).collect();
+        let weak_bigrams: Vec<String> = top_bigrams.into_iter().map(|(s, _)| s).collect();
+
+        // Build target words containing user's weak combinations or letters
+        let targeted_words: Vec<String> = if !weak_chars.is_empty() || !weak_bigrams.is_empty() {
+            pool.iter()
+                .filter(|w| {
+                    let w_lower = w.to_ascii_lowercase();
+                    weak_bigrams.iter().any(|bg| w_lower.contains(bg)) ||
+                    weak_chars.iter().any(|c| w_lower.contains(*c))
+                })
+                .map(|&s| s.to_string())
+                .collect()
+        } else {
+            Vec::new()
+        };
+
         self.words.clear();
-        let mut prev_word = "";
+        let mut prev_word = String::new();
         for _ in 0..160 {
             if self.punctuation_mode && rand::gen_range(0, 10) == 0 {
                 let n_idx = rand::gen_range(0, num_pool.len());
                 self.words.push(num_pool[n_idx].to_string());
-                prev_word = "";
+                prev_word.clear();
                 continue;
             }
 
-            let mut idx = rand::gen_range(0, pool.len());
-            if pool[idx] == prev_word {
-                idx = (idx + 1) % pool.len();
+            // If user has active weaknesses, weight targeted words by ~45%
+            let pick_targeted = !targeted_words.is_empty() && rand::gen_range(0, 100) < 45;
+            let mut word = if pick_targeted {
+                let idx = rand::gen_range(0, targeted_words.len());
+                targeted_words[idx].clone()
+            } else {
+                let idx = rand::gen_range(0, pool.len());
+                pool[idx].to_string()
+            };
+
+            if word == prev_word {
+                let idx = rand::gen_range(0, pool.len());
+                word = pool[idx].to_string();
             }
-            prev_word = pool[idx];
-            let mut word = pool[idx].to_string();
+            prev_word = word.clone();
 
             if self.punctuation_mode {
                 let p_choice = rand::gen_range(0, 10);
@@ -273,6 +305,7 @@ impl SpeedSprint {
                 if self.current_input.len() < target_chars.len() {
                     for &mc in &target_chars[self.current_input.len()..] {
                         *self.typo_counts.entry(mc.to_ascii_lowercase()).or_insert(0) += 1;
+                        self.stats.record_typo(mc, None);
                     }
                     self.missed_chars += (target_chars.len() - self.current_input.len()) as u32;
                     self.combo = 0;
@@ -315,21 +348,29 @@ impl SpeedSprint {
         sound.play_keystroke();
 
         if char_idx < target_chars.len() {
-            if c == target_chars[char_idx] {
+            let expected = target_chars[char_idx];
+            let prev_char = if char_idx > 0 { Some(target_chars[char_idx - 1]) } else { None };
+
+            if c == expected {
                 // Correct character!
                 self.correct_chars += 1;
                 self.combo += 1;
                 if self.combo > self.max_combo {
                     self.max_combo = self.combo;
                 }
+                // Gain proficiency: decay weakness count on clean strokes
+                self.stats.record_clean_keystroke(expected, prev_char);
+
                 let spark_col = if self.combo > 15 { palette.warning } else { palette.accent };
                 particles.spawn_keystroke_spark(self.caret_x, self.caret_y - 8.0, spark_col);
             } else {
-                // Typo!
+                // Typo! Track single character and bigram combination
                 self.incorrect_chars += 1;
                 self.combo = 0;
-                let expected = target_chars[char_idx].to_ascii_lowercase();
-                *self.typo_counts.entry(expected).or_insert(0) += 1;
+                let expected_lower = expected.to_ascii_lowercase();
+                *self.typo_counts.entry(expected_lower).or_insert(0) += 1;
+                self.stats.record_typo(expected, prev_char);
+
                 particles.spawn_keystroke_spark(self.caret_x, self.caret_y - 8.0, palette.danger);
             }
         } else {
@@ -608,24 +649,29 @@ impl SpeedSprint {
             draw_text(&combo_str, card_x + 280.0, card_y + 212.0, 16.0, palette.peach);
             draw_text(&time_str, card_x + 430.0, card_y + 212.0, 16.0, palette.text);
 
-            let top_typos = self.top_typos();
-            if !top_typos.is_empty() {
-                let typo_list = top_typos
-                    .iter()
-                    .map(|(c, count)| format!("[{}] {}x", c, count))
-                    .collect::<Vec<_>>()
-                    .join(", ");
-                let weak_str = format!("weak spots: {}", typo_list);
-                draw_text(&weak_str, card_x + 40.0, card_y + 242.0, 15.0, palette.danger);
+            let (top_letters, top_bigrams) = self.stats.top_weaknesses();
+            let mut weak_items = Vec::new();
+            for (bg, count) in &top_bigrams {
+                weak_items.push(format!("[{}] {}x", bg, count));
+            }
+            for (c, count) in &top_letters {
+                weak_items.push(format!("[{}] {}x", c, count));
+            }
+
+            if !weak_items.is_empty() {
+                let weak_str = format!("Adaptive Focus Queue: {}", weak_items.join(", "));
+                draw_text(&weak_str, card_x + 40.0, card_y + 242.0, 14.0, palette.danger);
+                let note = "These combinations will appear across upcoming tests until proficiency is gained";
+                draw_text(note, card_x + 40.0, card_y + 260.0, 11.5, palette.muted);
             } else {
-                let perf_str = "flawless run (100% accuracy)!";
-                draw_text(perf_str, card_x + 40.0, card_y + 242.0, 15.0, palette.success);
+                let perf_str = "flawless proficiency (100% mastery reached)!";
+                draw_text(perf_str, card_x + 40.0, card_y + 242.0, 14.0, palette.success);
             }
 
             // --- Rematch duration pills & Practice Weak Keys button ---
             let pill_w = 60.0;
             let spacing = 10.0;
-            let has_weak_keys = !top_typos.is_empty();
+            let has_weak_keys = !weak_items.is_empty();
             let weak_btn_w = if has_weak_keys { 180.0 } else { 0.0 };
             let total_pills_w = 3.0 * pill_w + 2.0 * spacing + if has_weak_keys { spacing + weak_btn_w } else { 0.0 };
             let start_x = card_x + (card_w - total_pills_w) * 0.5;
@@ -727,6 +773,21 @@ impl SpeedSprint {
             let pb_badge = format!("PB: {:.0} WPM", cur_pb);
             let pb_x = punc_x + punc_pill_w + 14.0;
             draw_text(&pb_badge, pb_x, bar_y + 18.0, 13.0, palette.peach);
+        }
+
+        // Adaptive Training Focus indicator
+        let (top_letters, top_bigrams) = self.stats.top_weaknesses();
+        if !top_letters.is_empty() || !top_bigrams.is_empty() {
+            let mut tags = Vec::new();
+            for (bg, _) in top_bigrams.iter().take(2) {
+                tags.push(format!("[{}]", bg));
+            }
+            for (c, _) in top_letters.iter().take(2) {
+                tags.push(format!("[{}]", c));
+            }
+            let focus_badge = format!("Adaptive Focus: {}", tags.join(" "));
+            let fb_dims = measure_text(&focus_badge, None, 13, 1.0);
+            draw_text(&focus_badge, (screen_w - fb_dims.width) * 0.5 + offset_x, bar_y + 46.0 + offset_y, 13.0, palette.peach);
         }
 
         // 3. Word Stream Display with stable 3-row layout and character-by-character color
