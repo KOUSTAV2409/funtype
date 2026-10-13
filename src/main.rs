@@ -30,6 +30,13 @@ const JETBRAINS_MONO: &[u8] = include_bytes!("../assets/fonts/jetbrains_mono.ttf
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    // Seed pseudo-random number generator with timestamp so every session generates fresh content
+    let seed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_nanos() as u64)
+        .unwrap_or(42);
+    rand::srand(seed);
+
     // Smooth anti-aliased font texture filtering
     set_default_filter_mode(FilterMode::Linear);
 

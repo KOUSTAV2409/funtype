@@ -50,6 +50,20 @@ impl SpeedSprint {
             "us", "great", "such", "through", "code", "focus", "flow", "mind", "calm", "speed",
             "system", "rust", "state", "point", "form", "life", "light", "space", "clear",
             "real", "still", "world", "hand", "high", "place", "hold", "turn", "right", "move",
+            "thing", "tell", "much", "before", "too", "mean", "differ", "line", "set", "own",
+            "under", "read", "last", "never", "along", "while", "might", "next", "sound", "below",
+            "something", "both", "few", "those", "always", "show", "large", "often", "together",
+            "ask", "house", "world", "going", "until", "mile", "river", "car", "feet", "care",
+            "second", "group", "carry", "took", "rain", "eat", "room", "friend", "began", "idea",
+            "fish", "mountain", "stop", "once", "base", "hear", "horse", "cut", "sure", "watch",
+            "color", "face", "wood", "main", "open", "seem", "white", "children", "begin", "got",
+            "walk", "example", "ease", "paper", "music", "mark", "letter", "book", "science",
+            "async", "await", "fn", "struct", "impl", "trait", "loop", "match", "break", "return",
+            "const", "static", "type", "enum", "pub", "mod", "use", "crate", "super", "self",
+            "string", "vector", "buffer", "cache", "thread", "stack", "heap", "pointer", "scope",
+            "build", "test", "bench", "cargo", "debug", "release", "target", "binary", "terminal",
+            "value", "index", "count", "error", "event", "input", "output", "render", "logic",
+            "server", "client", "packet", "stream", "socket", "parser", "layout", "pixel", "frame",
         ]
     }
 
@@ -193,14 +207,20 @@ impl SpeedSprint {
         let num_pool = vec!["42", "100", "2026", "1", "10", "256", "365", "12", "7", "99"];
 
         self.words.clear();
+        let mut prev_word = "";
         for _ in 0..160 {
             if self.punctuation_mode && rand::gen_range(0, 10) == 0 {
                 let n_idx = rand::gen_range(0, num_pool.len());
                 self.words.push(num_pool[n_idx].to_string());
+                prev_word = "";
                 continue;
             }
 
-            let idx = rand::gen_range(0, pool.len());
+            let mut idx = rand::gen_range(0, pool.len());
+            if pool[idx] == prev_word {
+                idx = (idx + 1) % pool.len();
+            }
+            prev_word = pool[idx];
             let mut word = pool[idx].to_string();
 
             if self.punctuation_mode {
