@@ -233,6 +233,11 @@ class SimulatorApp {
       "type", "build", "test", "cargo", "debug", "release", "binary", "terminal", "packet"
     ];
 
+    // Weakness tracking state (letters & bigrams with decay towards mastery)
+    this.weakLetters = new Map();
+    this.weakBigrams = new Map();
+    this.loadWeaknesses();
+
     this.sprintQuote = this.generateSprintQuote();
     this.sprintIndex = 0;
     this.sprintMistakes = 0;
@@ -242,11 +247,6 @@ class SimulatorApp {
     this.sprintTimeLeft = 30;
     this.sprintActive = false;
     this.sprintPrevChar = null;
-
-    // Weakness tracking state (letters & bigrams with decay towards mastery)
-    this.weakLetters = new Map();
-    this.weakBigrams = new Map();
-    this.loadWeaknesses();
 
     // Zen state
     this.zenPhrases = [
