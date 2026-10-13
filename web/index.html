@@ -201,13 +201,24 @@
       0%, 100% { border-bottom-color: var(--primary); }
       50% { border-bottom-color: transparent; }
     }
+
+    /* Deck.co inspired subtle card elevation & glass shine */
+    .glass-card {
+      background: linear-gradient(180deg, oklch(0.23 0.007 285.9) 0%, oklch(0.19 0.005 285.8) 100%);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.07), 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+    }
+    .glass-card-subtle {
+      background: linear-gradient(180deg, oklch(0.22 0.006 285.85) 0%, oklch(0.18 0.004 285.8) 100%);
+      box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    }
   </style>
 </head>
 <body class="bg-background text-foreground font-sans antialiased selection:bg-primary/30 selection:text-white min-h-screen relative overflow-x-hidden">
 
-  <!-- Ambient Backdrop Glow -->
-  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] bg-primary/[0.06] blur-[150px] pointer-events-none rounded-full -z-10"></div>
-  <div class="absolute inset-0 h-[800px] pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_85%)] -z-10"></div>
+  <!-- Ambient Backdrop Glows -->
+  <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[550px] bg-primary/[0.08] blur-[160px] pointer-events-none rounded-full -z-10"></div>
+  <div class="absolute top-[480px] left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-indigo-500/[0.04] blur-[140px] pointer-events-none rounded-full -z-10"></div>
+  <div class="absolute inset-0 h-[900px] pointer-events-none bg-[radial-gradient(rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:32px_32px] [mask-image:linear-gradient(to_bottom,black_0%,transparent_90%)] -z-10"></div>
 
   <!-- Small Centered Floating Navbar -->
   <header class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(92%,680px)]">
@@ -238,21 +249,26 @@
   </header>
 
   <!-- Hero Section -->
-  <section class="pt-24 sm:pt-28 pb-12 max-w-6xl mx-auto px-4 sm:px-6">
-    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary border border-border text-xs font-mono text-muted-foreground mb-6">
-      <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
-      <span>Hardware-Accelerated Unix Tool</span>
+  <section class="pt-28 sm:pt-36 pb-14 max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="flex items-center gap-2 mb-6">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/80 border border-border text-xs font-mono text-muted-foreground backdrop-blur-md">
+        <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+        <span>Hardware-Accelerated Unix Tool</span>
+      </div>
+      <div class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary/40 border border-border/70 text-xs font-mono text-muted-foreground">
+        <span>&lt;25ms Launch Latency</span>
+      </div>
     </div>
 
-    <!-- Title -->
-    <h1 class="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight text-foreground leading-[1.08] mb-8 max-w-4xl">
-      Execute your typing breaks with native speed and zero friction
+    <!-- Title with Deck.co gradient styling -->
+    <h1 class="text-3xl sm:text-5xl md:text-6xl lg:text-[4.2rem] font-bold tracking-tight text-foreground leading-[1.07] mb-8 max-w-4xl">
+      Execute your typing breaks with native speed and <span class="bg-gradient-to-r from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent">zero friction</span>
     </h1>
 
     <!-- Split Content Row -->
-    <div class="grid grid-cols-1 md:grid-cols-[1.3fr_0.7fr] gap-8 items-end pb-8 border-b border-border">
-      <p class="text-base sm:text-lg text-muted-foreground leading-relaxed">
-        FunType is developer infrastructure for micro-breaks. Summoned in &lt;25ms via <kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-xs font-mono text-foreground">SUPER + Y</kbd> over any IDE or browser to vaporize work stress, calibrate breathing cadence, or benchmark WPM with procedural mechanical switch audio.
+    <div class="grid grid-cols-1 md:grid-cols-[1.3fr_0.7fr] gap-8 items-end pb-10 border-b border-border">
+      <p class="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-2xl font-normal">
+        FunType is developer infrastructure for micro-breaks. Summoned in &lt;25ms via <kbd class="px-1.5 py-0.5 rounded bg-secondary border border-border text-xs font-mono text-foreground font-semibold shadow-sm">SUPER + Y</kbd> over any IDE or browser to vaporize work stress, calibrate breathing cadence, or benchmark WPM with procedural mechanical switch audio.
       </p>
 
       <div class="flex flex-col sm:flex-row gap-3 md:justify-end items-stretch sm:items-center">
@@ -266,8 +282,28 @@
       </div>
     </div>
 
+    <!-- Metrics Strip (Deck.co style high-credibility indicators) -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 text-left">
+      <div class="flex flex-col">
+        <span class="font-mono text-xl sm:text-2xl font-bold text-foreground tracking-tight">&lt; 25 ms</span>
+        <span class="text-xs text-muted-foreground font-mono mt-0.5">Cold launch time</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-mono text-xl sm:text-2xl font-bold text-foreground tracking-tight">1.6 MB</span>
+        <span class="text-xs text-muted-foreground font-mono mt-0.5">Standalone binary</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-mono text-xl sm:text-2xl font-bold text-foreground tracking-tight">0 MB</span>
+        <span class="text-xs text-muted-foreground font-mono mt-0.5">Idle RAM (Clean exit)</span>
+      </div>
+      <div class="flex flex-col">
+        <span class="font-mono text-xl sm:text-2xl font-bold text-foreground tracking-tight">Procedural</span>
+        <span class="text-xs text-muted-foreground font-mono mt-0.5">PCM audio engine</span>
+      </div>
+    </div>
+
     <!-- One-line Install Box -->
-    <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-card border border-border hover:border-primary/40 rounded-xl p-2.5 pl-4 shadow-2xl transition-all gap-3">
+    <div class="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-card border border-border hover:border-primary/40 rounded-xl p-2.5 pl-4 shadow-xl transition-all gap-3">
       <div class="flex items-center gap-2.5 font-mono text-xs sm:text-sm text-foreground min-w-0 overflow-hidden">
         <span class="text-primary select-none shrink-0">$</span>
         <code id="install-cmd-text" class="truncate select-all text-muted-foreground">curl -sSL https://raw.githubusercontent.com/KOUSTAV2409/funtype/main/install.sh | bash</code>
@@ -279,13 +315,13 @@
   </section>
 
   <!-- Interactive VM Showcase Section -->
-  <section class="pb-20 max-w-6xl mx-auto px-4 sm:px-6 relative" id="simulator">
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-primary/[0.04] blur-3xl pointer-events-none rounded-2xl -z-10"></div>
+  <section class="pb-24 max-w-6xl mx-auto px-4 sm:px-6 relative" id="simulator">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4/5 h-3/4 bg-primary/[0.05] blur-3xl pointer-events-none rounded-2xl -z-10"></div>
 
-    <div class="bg-card border border-border rounded-xl shadow-[0_24px_60px_-15px_rgba(0,0,0,0.9)] overflow-hidden relative">
+    <div class="glass-card border border-border/90 rounded-2xl shadow-[0_25px_70px_-15px_rgba(0,0,0,0.85)] overflow-hidden relative">
       
       <!-- Window Titlebar -->
-      <div class="flex items-center justify-between px-4 py-3 bg-secondary/50 border-b border-border flex-wrap gap-3">
+      <div class="flex items-center justify-between px-4 py-3 bg-secondary/40 backdrop-blur-md border-b border-border/80 flex-wrap gap-3">
         <div class="flex items-center gap-2">
           <span class="w-2.5 h-2.5 rounded-full bg-[#ff5f56]"></span>
           <span class="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]"></span>
@@ -404,58 +440,58 @@
       <p class="text-sm text-muted-foreground max-w-xl">Whether you want aggressive catharsis, steady breathing cadence, or targeted speed drills.</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <!-- Mode 01 -->
-      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
+      <div class="glass-card-subtle hover:border-primary/50 border border-border rounded-2xl p-7 flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 shadow-lg">
         <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">01</span>
-            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-secondary border border-border text-muted-foreground">Arcade</span>
+          <div class="flex items-center justify-between mb-5">
+            <span class="font-mono text-3xl font-bold text-muted-foreground/60 group-hover:text-primary transition-colors">01</span>
+            <span class="font-mono text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-muted-foreground">Arcade</span>
           </div>
-          <h3 class="text-lg font-semibold text-foreground tracking-tight mb-2.5">Stress Shredder</h3>
+          <h3 class="text-xl font-bold text-foreground tracking-tight mb-3">Stress Shredder</h3>
           <p class="text-sm text-muted-foreground leading-relaxed">
-            Real engineering blockers descend gracefully (<code class="text-foreground">merge conflict</code>, <code class="text-foreground">prod incident</code>, <code class="text-foreground">segfault</code>). Typing them vaporizes each stressor into clean spark particle explosions and resets your workplace stress gauge to zero.
+            Real engineering blockers descend gracefully (<code class="text-foreground bg-secondary/60 px-1 py-0.5 rounded text-xs">merge conflict</code>, <code class="text-foreground bg-secondary/60 px-1 py-0.5 rounded text-xs">prod incident</code>, <code class="text-foreground bg-secondary/60 px-1 py-0.5 rounded text-xs">segfault</code>). Typing them vaporizes each stressor into clean spark particle explosions and resets your workplace stress gauge to zero.
           </p>
         </div>
-        <div class="pt-4 mt-6 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
-          <span>Trigger: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">1</kbd></span>
+        <div class="pt-5 mt-7 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
+          <span>Trigger: <kbd class="px-2 py-0.5 rounded bg-secondary text-foreground font-semibold">1</kbd></span>
           <span>15s / 30s / 60s / Free Fall</span>
         </div>
       </div>
 
       <!-- Mode 02 -->
-      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
+      <div class="glass-card-subtle hover:border-primary/50 border border-border rounded-2xl p-7 flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 shadow-lg">
         <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">02</span>
-            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-secondary border border-border text-muted-foreground">Cadence</span>
+          <div class="flex items-center justify-between mb-5">
+            <span class="font-mono text-3xl font-bold text-muted-foreground/60 group-hover:text-primary transition-colors">02</span>
+            <span class="font-mono text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-muted-foreground">Cadence</span>
           </div>
-          <h3 class="text-lg font-semibold text-foreground tracking-tight mb-2.5">Zen Flow &amp; Breathing Orb</h3>
+          <h3 class="text-xl font-bold text-foreground tracking-tight mb-3">Zen Flow &amp; Breathing Orb</h3>
           <p class="text-sm text-muted-foreground leading-relaxed">
             Synchronizes finger cadence with a therapeutic 12-second respiration orb (Box Breathing: 4s Inhale, 2s Hold, 4s Exhale, 2s Rest) paired with philosophical reflections to down-regulate heart rate and mental strain.
           </p>
         </div>
-        <div class="pt-4 mt-6 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
-          <span>Trigger: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">2</kbd></span>
+        <div class="pt-5 mt-7 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
+          <span>Trigger: <kbd class="px-2 py-0.5 rounded bg-secondary text-foreground font-semibold">2</kbd></span>
           <span>Zero Error Penalties</span>
         </div>
       </div>
 
       <!-- Mode 03 -->
-      <div class="bg-card hover:bg-secondary/40 border border-border hover:border-primary/40 rounded-xl p-6 flex flex-col justify-between transition-all duration-200 group">
+      <div class="glass-card-subtle hover:border-primary/50 border border-border rounded-2xl p-7 flex flex-col justify-between transition-all duration-300 group hover:-translate-y-1 shadow-lg">
         <div>
-          <div class="flex items-center justify-between mb-4">
-            <span class="font-mono text-2xl font-bold text-muted-foreground group-hover:text-primary transition-colors">03</span>
-            <span class="font-mono text-[11px] px-2 py-0.5 rounded bg-secondary border border-border text-muted-foreground">Precision</span>
+          <div class="flex items-center justify-between mb-5">
+            <span class="font-mono text-3xl font-bold text-muted-foreground/60 group-hover:text-primary transition-colors">03</span>
+            <span class="font-mono text-[11px] px-2.5 py-1 rounded-full bg-secondary/80 border border-border text-muted-foreground">Precision</span>
           </div>
-          <h3 class="text-lg font-semibold text-foreground tracking-tight mb-2.5">Speed Sprint &amp; Weak Keys</h3>
+          <h3 class="text-xl font-bold text-foreground tracking-tight mb-3">Speed Sprint &amp; Weak Keys</h3>
           <p class="text-sm text-muted-foreground leading-relaxed">
-            High-velocity sprints with real-time WPM sparklines and automated error detection. Press <kbd class="px-1.5 py-0.5 rounded bg-secondary text-xs text-foreground font-mono">Ctrl + M</kbd> to automatically generate targeted training drills isolating your slowest finger transitions.
+            High-velocity sprints with real-time WPM sparklines, bigram weakness detection, and persistent decay mechanics. Words isolating your slowest finger transitions adaptively loop until proficiency is mastered.
           </p>
         </div>
-        <div class="pt-4 mt-6 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
-          <span>Trigger: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">3</kbd></span>
-          <span>Drills: <kbd class="px-1.5 py-0.5 rounded bg-secondary text-foreground">Ctrl+M</kbd></span>
+        <div class="pt-5 mt-7 border-t border-border flex items-center justify-between font-mono text-xs text-muted-foreground">
+          <span>Trigger: <kbd class="px-2 py-0.5 rounded bg-secondary text-foreground font-semibold">3</kbd></span>
+          <span>Drills: <kbd class="px-2 py-0.5 rounded bg-secondary text-foreground font-semibold">Ctrl+M</kbd></span>
         </div>
       </div>
     </div>
@@ -473,16 +509,17 @@
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <!-- FunType Native Column -->
-      <div class="bg-gradient-to-b from-primary/10 to-card border border-border rounded-xl p-6 shadow-xl">
+      <div class="glass-card border border-primary/30 rounded-2xl p-7 shadow-2xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-48 h-48 bg-primary/[0.08] blur-2xl pointer-events-none rounded-full"></div>
         <div class="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <div>
-            <h3 class="text-base font-semibold text-foreground">FunType (Rust Native)</h3>
+            <h3 class="text-lg font-bold text-foreground">FunType (Rust Native)</h3>
             <span class="text-xs text-muted-foreground">Directly on Wayland / X11 / Cocoa</span>
           </div>
-          <span class="font-mono text-xs text-primary bg-primary/10 px-2.5 py-1 rounded-full border border-border font-medium">OPTIMAL</span>
+          <span class="font-mono text-xs text-primary bg-primary/10 px-3 py-1 rounded-full border border-primary/30 font-semibold">OPTIMAL</span>
         </div>
 
-        <div class="divide-y divide-border text-sm">
+        <div class="divide-y divide-border/60 text-sm">
           <div class="py-3 flex justify-between items-center">
             <span class="text-muted-foreground">Startup Latency</span>
             <span class="font-mono text-primary font-semibold">&lt; 25 ms</span>
@@ -507,16 +544,16 @@
       </div>
 
       <!-- Heavy Web Wrapper Column -->
-      <div class="bg-card border border-border rounded-xl p-6">
+      <div class="glass-card-subtle border border-border rounded-2xl p-7 shadow-lg">
         <div class="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <div>
-            <h3 class="text-base font-semibold text-muted-foreground">Traditional Web / Electron Tests</h3>
+            <h3 class="text-lg font-semibold text-muted-foreground">Traditional Web / Electron Tests</h3>
             <span class="text-xs text-muted-foreground">Browser chromium instances</span>
           </div>
-          <span class="font-mono text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full border border-border">HEAVY</span>
+          <span class="font-mono text-xs text-muted-foreground bg-secondary/80 px-3 py-1 rounded-full border border-border">HEAVY</span>
         </div>
 
-        <div class="divide-y divide-border text-sm">
+        <div class="divide-y divide-border/60 text-sm">
           <div class="py-3 flex justify-between items-center">
             <span class="text-muted-foreground">Startup Latency</span>
             <span class="font-mono text-destructive font-medium">1,200 – 3,000 ms</span>
@@ -553,12 +590,12 @@
     </div>
 
     <div class="flex gap-2 mb-3">
-      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-primary text-primary-foreground border border-border transition-colors" data-config="hyprland">Hyprland / Omarchy</button>
-      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors" data-config="i3">i3 / Sway</button>
-      <button class="setup-tab-btn px-3 py-1.5 text-xs font-mono rounded bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors" data-config="macos">macOS (skhd)</button>
+      <button class="setup-tab-btn px-3.5 py-1.5 text-xs font-mono font-medium rounded-lg bg-primary text-primary-foreground border border-primary/40 shadow-sm transition-all" data-config="hyprland">Hyprland / Omarchy</button>
+      <button class="setup-tab-btn px-3.5 py-1.5 text-xs font-mono font-medium rounded-lg bg-secondary/80 border border-border text-muted-foreground hover:text-foreground transition-all" data-config="i3">i3 / Sway</button>
+      <button class="setup-tab-btn px-3.5 py-1.5 text-xs font-mono font-medium rounded-lg bg-secondary/80 border border-border text-muted-foreground hover:text-foreground transition-all" data-config="macos">macOS (skhd)</button>
     </div>
 
-    <div class="bg-card border border-border rounded-xl p-5 font-mono text-xs text-foreground overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden leading-relaxed shadow-lg" id="setup-code-block">
+    <div class="glass-card-subtle border border-border/80 rounded-2xl p-6 font-mono text-xs text-foreground overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden leading-relaxed shadow-xl relative" id="setup-code-block">
 # ~/.config/hypr/hyprland.conf (or ~/.config/hypr/bindings.lua in Omarchy)
 bind = SUPER, Y, exec, ~/.local/bin/funtype
 windowrulev2 = float, class:^(funtype)$
