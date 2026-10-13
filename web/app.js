@@ -195,8 +195,45 @@ class SimulatorApp {
       'emergency call', '404 not found', 'unpaid overtime', 'scope creep'
     ];
 
-    // Sprint state
-    this.sprintQuote = "Clean code reads like well written prose. It never obscures the designer intent, but rather is full of crisp abstractions and straightforward lines of control.";
+    // Sprint state & Monkeytype-style multi-quote / word generation pool
+    this.sprintPool = [
+      "Clean code reads like well written prose. It never obscures the designer intent, but rather is full of crisp abstractions and straightforward lines of control.",
+      "Programs must be written for people to read, and only incidentally for machines to execute.",
+      "Simplicity is prerequisite for reliability. Premature optimization is the root of all evil in software engineering.",
+      "Any fool can write code that a computer can understand. Good programmers write code that humans can understand.",
+      "First solve the problem, then write the code. Make it work, make it right, and only then make it fast.",
+      "Measuring programming progress by lines of code is like measuring aircraft building progress by weight.",
+      "Talk is cheap. Show me the code. Elegant systems are built by removing complexity rather than adding features.",
+      "The function of good software is to make the complex appear effortless and provide immediate clarity to the user.",
+      "Good design adds value faster than it adds cost. Always leave the codebase cleaner than you found it.",
+      "There are only two hard things in Computer Science: cache invalidation and naming things.",
+      "Walking on water and developing software from a specification are easy if both are frozen.",
+      "The most dangerous phrase in the language is, we have always done it this way.",
+      "Before software can be reusable it first has to be usable. Focus on clarity and correctness first.",
+      "Perfection is achieved, not when there is nothing more to add, but when there is nothing left to take away.",
+      "Controlling complexity is the essence of computer programming. Keep components small, decoupled, and focused."
+    ];
+
+    this.sprintWordsPool = [
+      "the", "be", "to", "of", "and", "a", "in", "that", "have", "it", "for", "not",
+      "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from",
+      "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would",
+      "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which",
+      "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know",
+      "take", "people", "into", "year", "your", "good", "some", "could", "them", "see",
+      "other", "than", "then", "now", "look", "only", "come", "its", "over", "think",
+      "also", "back", "after", "use", "two", "how", "our", "work", "first", "well",
+      "way", "even", "new", "want", "because", "any", "these", "give", "day", "most",
+      "us", "great", "such", "through", "code", "focus", "flow", "mind", "calm", "speed",
+      "system", "rust", "state", "point", "form", "life", "light", "space", "clear",
+      "real", "still", "world", "hand", "high", "place", "hold", "turn", "right", "move",
+      "thing", "tell", "much", "before", "too", "mean", "differ", "line", "set", "own",
+      "under", "read", "last", "never", "along", "while", "might", "next", "sound", "below",
+      "async", "await", "function", "struct", "loop", "match", "break", "return", "const",
+      "type", "build", "test", "cargo", "debug", "release", "binary", "terminal", "packet"
+    ];
+
+    this.sprintQuote = this.generateSprintQuote();
     this.sprintIndex = 0;
     this.sprintMistakes = 0;
     this.sprintStartTime = null;
@@ -213,10 +250,33 @@ class SimulatorApp {
       "You are not your compiler errors; you are the architect.",
       "Let each keystroke be deliberate and without haste."
     ];
-    this.zenPhraseIndex = 0;
+    this.zenPhraseIndex = Math.floor(Math.random() * this.zenPhrases.length);
     this.zenCharIndex = 0;
 
     this.init();
+  }
+
+  generateSprintQuote() {
+    // 50% chance curated programming wisdom, 50% chance Monkeytype random word stream
+    if (Math.random() < 0.5) {
+      let quote = this.sprintPool[Math.floor(Math.random() * this.sprintPool.length)];
+      if (quote === this.sprintQuote && this.sprintPool.length > 1) {
+        quote = this.sprintPool[(this.sprintPool.indexOf(quote) + 1) % this.sprintPool.length];
+      }
+      return quote;
+    } else {
+      const words = [];
+      let prev = '';
+      for (let i = 0; i < 22; i++) {
+        let w = this.sprintWordsPool[Math.floor(Math.random() * this.sprintWordsPool.length)];
+        if (w === prev) {
+          w = this.sprintWordsPool[(this.sprintWordsPool.indexOf(w) + 1) % this.sprintWordsPool.length];
+        }
+        prev = w;
+        words.push(w);
+      }
+      return words.join(' ');
+    }
   }
 
   init() {
@@ -687,6 +747,7 @@ class SimulatorApp {
     this.sprintMistakes = 0;
     this.sprintStartTime = null;
     this.sprintTimeLeft = this.sprintDuration;
+    this.sprintQuote = this.generateSprintQuote();
 
     const timerBadge = document.getElementById('sprint-timer-val');
     const wpmElem = document.getElementById('sprint-wpm-val');
