@@ -241,6 +241,12 @@ class SimulatorApp {
     this.sprintDuration = 30;
     this.sprintTimeLeft = 30;
     this.sprintActive = false;
+    this.sprintPrevChar = null;
+
+    // Weakness tracking state (letters & bigrams with decay towards mastery)
+    this.weakLetters = new Map();
+    this.weakBigrams = new Map();
+    this.loadWeaknesses();
 
     // Zen state
     this.zenPhrases = [
@@ -256,19 +262,159 @@ class SimulatorApp {
     this.init();
   }
 
+  loadWeaknesses() {
+    try {
+      const lettersJson = localStorage.getItem('funtype_weak_letters');
+      if (lettersJson) {
+        const parsed = JSON.parse(lettersJson);
+        for (const [k, v] of Object.entries(parsed)) {
+          if (v > 0) this.weakLetters.set(k.toLowerCase(), v);
+        }
+      }
+      const bigramsJson = localStorage.getItem('funtype_weak_bigrams');
+      if (bigramsJson) {
+        const parsed = JSON.parse(bigramsJson);
+        for (const [k, v] of Object.entries(parsed)) {
+          if (v > 0) this.weakBigrams.set(k.toLowerCase(), v);
+        }
+      }
+    } catch (e) {
+      console.warn('Could not load weakness profile:', e);
+    }
+  }
+
+  saveWeaknesses() {
+    try {
+      const lettersObj = Object.fromEntries(this.weakLetters);
+      const bigramsObj = Object.fromEntries(this.weakBigrams);
+      localStorage.setItem('funtype_weak_letters', JSON.stringify(lettersObj));
+      localStorage.setItem('funtype_weak_bigrams', JSON.stringify(bigramsObj));
+    } catch (e) {
+      console.warn('Could not save weakness profile:', e);
+    }
+  }
+
+  recordTypo(expectedChar, prevChar) {
+    if (!expectedChar) return;
+    const ch = expectedChar.toLowerCase();
+    if (ch >= 'a' && ch <= 'z') {
+      const current = this.weakLetters.get(ch) || 0;
+      this.weakLetters.set(ch, Math.min(30, current + 2));
+    }
+    if (prevChar) {
+      const p = prevChar.toLowerCase();
+      if (p >= 'a' && p <= 'z' && ch >= 'a' && ch <= 'z') {
+        const bg = `${p}${ch}`;
+        const currentBg = this.weakBigrams.get(bg) || 0;
+        this.weakBigrams.set(bg, Math.min(30, currentBg + 3));
+      }
+    }
+    this.saveWeaknesses();
+    this.updateWeaknessHud();
+  }
+
+  recordCleanStroke(expectedChar, prevChar) {
+    if (!expectedChar) return;
+    const ch = expectedChar.toLowerCase();
+    if (this.weakLetters.has(ch)) {
+      const current = this.weakLetters.get(ch);
+      if (current <= 1) {
+        this.weakLetters.delete(ch);
+      } else {
+        this.weakLetters.set(ch, current - 1);
+      }
+    }
+    if (prevChar) {
+      const p = prevChar.toLowerCase();
+      const bg = `${p}${ch}`;
+      if (this.weakBigrams.has(bg)) {
+        const currentBg = this.weakBigrams.get(bg);
+        if (currentBg <= 1) {
+          this.weakBigrams.delete(bg);
+        } else {
+          this.weakBigrams.set(bg, currentBg - 1);
+        }
+      }
+    }
+    this.saveWeaknesses();
+    this.updateWeaknessHud();
+  }
+
+  getTopWeaknesses() {
+    const sortedLetters = Array.from(this.weakLetters.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(entry => entry[0]);
+
+    const sortedBigrams = Array.from(this.weakBigrams.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(entry => entry[0]);
+
+    return { letters: sortedLetters, bigrams: sortedBigrams };
+  }
+
+  updateWeaknessHud() {
+    const badge = document.getElementById('sprint-focus-badge');
+    const text = document.getElementById('sprint-focus-text');
+    if (!badge || !text) return;
+
+    const { letters, bigrams } = this.getTopWeaknesses();
+    const targets = [];
+    bigrams.forEach(bg => targets.push(`[${bg}]`));
+    letters.forEach(ch => targets.push(ch));
+
+    if (targets.length === 0) {
+      text.textContent = 'Proficient';
+      badge.classList.add('opacity-60');
+    } else {
+      text.textContent = targets.slice(0, 3).join(' ');
+      badge.classList.remove('opacity-60');
+    }
+  }
+
   generateSprintQuote() {
-    // 50% chance curated programming wisdom, 50% chance Monkeytype random word stream
+    const { letters: weakL, bigrams: weakB } = this.getTopWeaknesses();
+    const hasWeaknesses = weakL.length > 0 || weakB.length > 0;
+
+    // Filter dictionary for words that target the user's weaknesses
+    const weakCandidates = hasWeaknesses
+      ? this.sprintWordsPool.filter(w => {
+          const lower = w.toLowerCase();
+          const hasBigram = weakB.some(bg => lower.includes(bg));
+          const hasLetter = weakL.some(ch => lower.includes(ch));
+          return hasBigram || hasLetter;
+        })
+      : [];
+
+    // 50% chance curated programming wisdom (prioritizing quote with weaknesses), 50% chance random word stream
     if (Math.random() < 0.5) {
-      let quote = this.sprintPool[Math.floor(Math.random() * this.sprintPool.length)];
-      if (quote === this.sprintQuote && this.sprintPool.length > 1) {
-        quote = this.sprintPool[(this.sprintPool.indexOf(quote) + 1) % this.sprintPool.length];
+      let pool = this.sprintPool;
+      if (hasWeaknesses) {
+        const matchingQuotes = pool.filter(q => {
+          const lower = q.toLowerCase();
+          return weakB.some(bg => lower.includes(bg)) || weakL.some(ch => lower.includes(ch));
+        });
+        if (matchingQuotes.length > 0) {
+          pool = matchingQuotes;
+        }
+      }
+      let quote = pool[Math.floor(Math.random() * pool.length)];
+      if (quote === this.sprintQuote && pool.length > 1) {
+        quote = pool[(pool.indexOf(quote) + 1) % pool.length];
       }
       return quote;
     } else {
       const words = [];
       let prev = '';
       for (let i = 0; i < 22; i++) {
-        let w = this.sprintWordsPool[Math.floor(Math.random() * this.sprintWordsPool.length)];
+        let w = '';
+        // If user has weaknesses, inject weak words ~50% of the time to drill proficiency
+        if (weakCandidates.length > 0 && Math.random() < 0.5) {
+          w = weakCandidates[Math.floor(Math.random() * weakCandidates.length)];
+        } else {
+          w = this.sprintWordsPool[Math.floor(Math.random() * this.sprintWordsPool.length)];
+        }
         if (w === prev) {
           w = this.sprintWordsPool[(this.sprintWordsPool.indexOf(w) + 1) % this.sprintWordsPool.length];
         }
@@ -282,6 +428,7 @@ class SimulatorApp {
   init() {
     this.bindEvents();
     this.setupShredderCanvas();
+    this.updateWeaknessHud();
     this.renderSprintText();
     this.renderZenText();
     this.startShredderLoop();
@@ -688,9 +835,12 @@ class SimulatorApp {
       const targetChar = this.sprintQuote[this.sprintIndex];
 
       if (lastChar === targetChar) {
+        this.recordCleanStroke(targetChar, this.sprintPrevChar);
+        this.sprintPrevChar = targetChar;
         this.sprintIndex++;
       } else {
         this.sprintMistakes++;
+        this.recordTypo(targetChar, this.sprintPrevChar);
       }
       this.renderSprintText();
       this.updateSprintStats();
@@ -738,6 +888,7 @@ class SimulatorApp {
     audio.playExplosion();
     const timerBadge = document.getElementById('sprint-timer-val');
     if (timerBadge) timerBadge.textContent = 'DONE';
+    this.updateWeaknessHud();
   }
 
   resetSprint() {
@@ -745,6 +896,7 @@ class SimulatorApp {
     this.sprintActive = false;
     this.sprintIndex = 0;
     this.sprintMistakes = 0;
+    this.sprintPrevChar = null;
     this.sprintStartTime = null;
     this.sprintTimeLeft = this.sprintDuration;
     this.sprintQuote = this.generateSprintQuote();
@@ -756,6 +908,7 @@ class SimulatorApp {
     if (wpmElem) wpmElem.textContent = '0';
     if (accElem) accElem.textContent = '100%';
 
+    this.updateWeaknessHud();
     this.renderSprintText();
     const inp = document.getElementById('sprint-typer');
     if (inp) { inp.value = ''; inp.focus(); }
